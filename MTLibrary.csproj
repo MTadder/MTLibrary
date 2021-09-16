@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <StartupObject />
+    <Version>0.5.16.21</Version>
+    <Authors>MTadder</Authors>
+    <Company>MTLaboratory</Company>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <Description>Provides sanely-designed modern tools; mainly classes. For use by the modern programmer.</Description>
+    <NeutralLanguage>en-CA</NeutralLanguage>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants />
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="LICENSE">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+
+</Project>
