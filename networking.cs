@@ -152,9 +152,10 @@ namespace MTLibrary
             private IPEndPoint hostEndpoint;
             
             protected Socket sock;
-            protected Action connector;
+            protected Action listener;
 
-            public Action<Socket> OnConnect;
+            public delegate void Connector(Socket sock);
+            public Connector Connect;
             public Boolean acceptConnections = true;
 
             public Server(int port=11942)
@@ -166,14 +167,14 @@ namespace MTLibrary
                 this.sock = new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 this.sock.Bind(this.hostEndpoint);
                 this.sock.Listen();
-                this.connector = new(()=>
+                this.listener = new(()=>
                 {
                     while (this.acceptConnections == true)
                     {
-                        OnConnect.Invoke(this.sock.Accept());
+                        this.Connect(this.sock.Accept());
                     }
                 });
-                this.connector.Invoke();
+                this.listener.Invoke();
             }
             ~Server()
             {
@@ -189,7 +190,8 @@ namespace MTLibrary
             protected Socket sock;
 
             public Boolean shouldListen = true;
-            public Action<Socket, byte[]> OnReceived;
+            public delegate void Receiver(Socket sock, byte[] data);
+            public Receiver OnReceive;
 
             public void Send(byte[] data)
             {
@@ -217,7 +219,7 @@ namespace MTLibrary
                         {
                             byte[] got = new byte[this.sock.ReceiveBufferSize];
                             this.sock.Receive(got);
-                            this.OnReceived.Invoke(this.sock, got);
+                            this.OnReceive(this.sock, got);
                         }
                     });
                     // Start listening to the Socket

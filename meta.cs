@@ -9,5 +9,10 @@ namespace MTLibrary
 
         public const string version = "latco";
         public const ConsoleColor colorCode = ConsoleColor.DarkRed;
+
+        public static void Assert(Boolean expr, String message)
+        {
+            if (expr != true) throw new Exception(message);
+        }
     }
 }
