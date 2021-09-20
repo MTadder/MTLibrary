@@ -6,6 +6,9 @@
 *.sin.docstates
 *.userprefs
 
+# Key Files
+*.pfx
+
 # Build Results
 [Dd]ebug/
 [Dd]ebugPublic/

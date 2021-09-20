@@ -1,238 +1,220 @@
 ﻿using System;
-using System.IO;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 
-namespace MTLibrary
-{
-    public struct networking
-    {
-        public class Transmission
-        {
-            Dictionary<String, String> content = new();
-            byte[] buffer;
+namespace MTLibrary {
+    public struct Networking {
+        public class Transmission {
+            public Dictionary<String, String> content = new();
 
-            private void DecodeContent(byte[] candidateContent)
-            {
-                // Instantiate streams
+            /// <summary>
+            /// Decodes <paramref name="candidateContent"/> bytes into the Transmission 
+            /// <see cref="Transmission.content">Dictionary</see>
+            /// </summary>
+            private void DecodeContent(Byte[] candidateContent) {
                 MemoryStream memStream = new(candidateContent);
                 BinaryReader decoder = new(memStream);
 
-                // Read number of dictionary pairs
-                int pairs = decoder.ReadInt32();
+                Int32 pairs = decoder.ReadInt32();
 
-                // Decode key, value pairs
-                for (int i = 0; i < pairs; i++)
-                {
-                    // Read key & value from candidate stream
+                for (Int32 i = 0; i < pairs; i++) {
                     String newKey = decoder.ReadString();
                     String newVal = decoder.ReadString();
 
-                    // Check if the candidate key is already in content
-                    String got = String.Empty;
-                    this.content.TryGetValue(newKey, out got);
-                    if ((got == String.Empty || String.IsNullOrEmpty(got)) == false)
-                    {
-                        // If so, remove the key and value
-                        this.content.Remove(newKey);
-                    }
-                    // Then, add the key & value to the content dictionary
+                    if (!String.IsNullOrEmpty(this.content[newKey])) _= this.content.Remove(newKey);
                     this.content.Add(newKey, newVal);
 
-                    // Finally, close streams
                     decoder.Close();
                     memStream.Close();
                 }
 
             }
-            private byte[] EncodeContent()
-            {
-                // Instantiate streams
+
+            /// <summary>
+            /// Encodes the <see cref="Transmission.content">Dictionary</see> bytes
+            /// </summary>
+            /// <returns>
+            /// (<see cref="Dictionary{TKey, TValue}"/> as) <see cref="Byte"/>[]
+            /// </returns>
+            private Byte[] EncodeContent() {
                 MemoryStream memStream = new();
                 BinaryWriter encoder = new(memStream);
 
-                // Encode number of dictionary pairs
-                int length = this.content.Count;
-                encoder.Write((Int32) length);
+                Int32 length = this.content.Count;
+                encoder.Write(length);
 
-                // Encode key, value pairs
                 Dictionary<String, String>.Enumerator contentEnumerator = this.content.GetEnumerator();
-                for (int i = 0; i < length; i++)
-                {
-                    contentEnumerator.MoveNext();
-                    encoder.Write((String) contentEnumerator.Current.Key);
-                    encoder.Write((String) contentEnumerator.Current.Value);
+                for (Int32 i = 0; i < length; i++) {
+                    if (contentEnumerator.MoveNext()) {
+                        encoder.Write(contentEnumerator.Current.Key);
+                        encoder.Write(contentEnumerator.Current.Value);
+                    }
                 }
 
-                // Fetch byte array
-                byte[] got = memStream.ToArray();
+                Byte[] got = memStream.ToArray();
 
-                // Close streams
                 encoder.Close();
                 memStream.Close();
 
-                // Return the bytes
                 return got;
             }
-            private void Decypher()
-            {
-                // Instantiate streams
-                MemoryStream memStream = new(this.buffer);
+            private void Decode(Byte[] data) {
+                MemoryStream memStream = new(data);
                 BinaryReader binReader = new(memStream);
 
-                // Read content length, then decode it
-                int length = binReader.ReadInt32();
+                Int32 length = binReader.ReadInt32();
                 this.DecodeContent(binReader.ReadBytes(length));
 
-                // Close streams
                 binReader.Close();
                 memStream.Close();
             }
-            private byte[] Cypher()
-            {
-                // Instantiate streams
+            private Byte[] Encode() {
                 MemoryStream memStream = new();
                 BinaryWriter binWriter = new(memStream);
 
-                // Write content length
-                binWriter.Write((Int32) this.content.Count);
+                binWriter.Write(this.content.Count);
 
-                // Encode & Write content bytes
-                binWriter.Write((byte[]) this.EncodeContent());
+                binWriter.Write(this.EncodeContent());
 
-                // Retrieve the Cyphered bytes
-                byte[] got = memStream.ToArray();
+                Byte[] got = memStream.ToArray();
 
-                // Close streams
                 binWriter.Close();
                 memStream.Close();
 
-                // Return the Cyphered bytes
                 return got;
             }
 
             /// <summary>
-            /// Sends the Cyphered Dictionary over the specified Socket
+            /// Sends Encoded <see cref="content"/> over the specified
+            /// <paramref name="socket"/>
             /// </summary>
-            /// <param name="sock">Socket to send data over</param>
-            public void Send(Socket sock)
-            {
-                if (sock.Connected)
-                {
-                    sock.Send(this.Cypher());
-                }
+            /// <returns>
+            /// True, if the whole <see cref="Byte"/>[] array was sent; False, otherwise.
+            /// </returns>
+            public static Boolean Send(Transmission t, Socket socket) {
+                _ = socket ??
+                    throw new ArgumentNullException(nameof(socket));
+                if (!socket.Connected)
+                    throw new InvalidOperationException("Socket is null");
+
+                Byte[] dat = t.Encode();
+                return socket.Send(dat).Equals(dat.Length);
             }
 
-            /// <summary>
-            /// Recieves bytes over a Socket connection, and parses them into a Dictionary
-            /// </summary>
-            /// <param name="sock">Socket to receive on</param>
-            public Transmission(Socket sock)
-            {
-                this.buffer = new byte[sock.ReceiveBufferSize];
-                sock.Receive(this.buffer);
-                this.Decypher();
+            public Boolean Send(Socket socket) => Transmission.Send(this, socket);
+
+            public Transmission(Socket sock) {
+                Byte[] data = new Byte[sock.ReceiveBufferSize];
+                _ = sock.Receive(data);
+                this.Decode(data);
             }
 
-            /// <summary>
-            /// Parses an array of bytes as a <String, String> Dictionary
-            /// </summary>
-            /// <param name="data"></param>
-            public Transmission(byte[] data)
-            {
-                this.buffer = data;
-                this.Decypher();
-            }
+            public Transmission(Byte[] data) => this.Decode(data);
         }
-        public class Server
-        {
+        public class Server {
             private IPHostEntry hostInfo;
             private IPAddress hostAddress;
             private IPEndPoint hostEndpoint;
-            
-            protected Socket sock;
-            protected Action listener;
 
+            protected Action listener;
+            protected Socket? sock;
+
+            public Boolean acceptConnections = true;
             public delegate void Connector(Socket sock);
             public Connector Connect;
-            public Boolean acceptConnections = true;
 
-            public Server(int port=11942)
-            {
+            /// <summary>
+            /// Instantiates a <see cref="Socket"/> and
+            /// accepts new connections into <paramref name="connector"/>
+            /// <code>while (<see cref="Server.acceptConnections"/> == true)</code>
+            /// using <see cref="AddressFamily.InterNetwork">IPv4</see>
+            /// and <see cref="ProtocolType.Tcp">TCP</see>.
+            /// </summary>
+            /// <param name="connector">
+            /// <see cref="Delegate"/> to Invoke with <see cref="Socket.Accept"/>
+            /// </param>
+            /// <param name="port">
+            /// Port to use in <see cref="IPEndPoint"/>
+            /// </param>
+            public Server(Connector? connector, Int32 port = 11942) {
                 this.hostInfo = Dns.GetHostEntry(Dns.GetHostName());
                 this.hostAddress = this.hostInfo.AddressList[0];
                 this.hostEndpoint = new IPEndPoint(this.hostAddress, port);
-                
+
+                this.Connect = connector ?? ((Socket s) => { });
+
                 this.sock = new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 this.sock.Bind(this.hostEndpoint);
                 this.sock.Listen();
-                this.listener = new(()=>
-                {
-                    while (this.acceptConnections == true)
-                    {
+                this.listener = new(() => {
+                    while (this.acceptConnections == true) {
                         this.Connect(this.sock.Accept());
                     }
                 });
                 this.listener.Invoke();
             }
-            ~Server()
-            {
+            ~Server() {
                 this.acceptConnections = false;
-                this.sock.Close();
+                if (this.sock != null)
+                    this.sock.Close();
             }
         }
-        public class Client
-        {
-            private Guid uuid = Guid.NewGuid();
+        public class Client {
+            // private Guid uuid = Guid.NewGuid();
 
-            protected Action listener;
-            protected Socket sock;
+            protected Action listener = () => { };
+            protected Socket? sock;
 
             public Boolean shouldListen = true;
-            public delegate void Receiver(Socket sock, byte[] data);
-            public Receiver OnReceive;
+            public delegate void Receiver(Socket sock, Byte[] data);
+            public Receiver OnReceive = (Socket s, Byte[] d) => { };
 
-            public void Send(byte[] data)
-            {
-                // Send data if Socket is Connected
-                if (this.sock.Connected) this.sock.Send(data);
-            }
+            /// <summary>
+            /// Sends a <see cref="Byte"/> array over the connected <see cref="Client.sock"/>.
+            /// </summary>
+            /// <param name="data">
+            /// <see cref="Byte"/>s to send over the <see cref="Client.sock"/>.
+            /// </param>
+            /// <returns>
+            /// The number of <see cref="Byte"/>s sent with <see cref="Client.sock"/>.
+            /// </returns>
+            public Int32 Send(Byte[] data) => this.sock != null ? this.sock.Send(data) : 0;
 
-            public void Connect(IPAddress targetAddress=null, int port=11942)
-            {
-                // Determine IP information
-                if (targetAddress.Equals(null)) targetAddress = IPAddress.Any;
-                IPEndPoint targetEndpoint = new IPEndPoint(targetAddress, port);
-
-                // Try to Connect the Socket to the target IP
-                try
-                {
-                    // Instantiate the Socket
+            /// <summary>
+            /// Instantiates a listening <see cref="Socket"/>
+            /// using <see cref="AddressFamily.InterNetwork">IPv4</see>
+            /// and <see cref="ProtocolType.Tcp">TCP</see>.
+            /// The Client listens and will call <see cref="OnReceive"/> with <see cref="Socket.Receive"/>
+            /// <code>while (<see cref="Client.shouldListen"/> == true)</code>
+            /// </summary>
+            /// <param name="targetAddress">
+            /// IP Address to connect with <see cref="IPEndPoint"/>.
+            /// If null, then it will be set to <see cref="IPAddress.Any"/>
+            /// </param>
+            /// <param name="port">
+            /// Port to connect with <see cref="IPEndPoint"/>.
+            /// </param>
+            public Client(IPAddress? targetAddress, Int32 port = 11942) {
+                IPEndPoint targetEndpoint = new(targetAddress ?? IPAddress.Any, port);
+                try {
                     this.sock = new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                     this.sock.Connect(targetEndpoint);
 
-                    // Declare listening method
-                    this.listener = new(() =>
-                    {
-                        while (this.shouldListen)
-                        {
-                            byte[] got = new byte[this.sock.ReceiveBufferSize];
-                            this.sock.Receive(got);
+                    this.listener = new(() => {
+                        while (this.shouldListen) {
+                            Byte[] got = new Byte[this.sock.ReceiveBufferSize];
+                            _ = this.sock.Receive(got);
                             this.OnReceive(this.sock, got);
                         }
                     });
-                    // Start listening to the Socket
                     this.listener.Invoke();
-                } catch (Exception)
-                {
-                    // Could not Connect!
-                    throw;
-                }
+                } catch (Exception) { throw; }
             }
             ~Client() {
                 this.shouldListen = false;
-                this.sock.Close();
+                if (this.sock != null) this.sock.Close();
             }
         }
     }

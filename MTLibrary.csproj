@@ -9,11 +9,27 @@
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <Description>Provides sanely-designed modern tools; mainly classes. For use by the modern programmer.</Description>
     <NeutralLanguage>en-CA</NeutralLanguage>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <RepositoryUrl>https://github.com/MTadder/MTLibrary</RepositoryUrl>
+    <RepositoryType>Git</RepositoryType>
+    <PackageTags>Modern Toolset, MTLib, MTLibrary</PackageTags>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>MTKey.pfx</AssemblyOriginatorKeyFile>
+    <DelaySign>true</DelaySign>
+    <Nullable>enable</Nullable>
+    <ApplicationIcon />
+    <OutputType>Library</OutputType>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DefineConstants />
+    <DefineConstants>DEBUG</DefineConstants>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
   </PropertyGroup>
 
