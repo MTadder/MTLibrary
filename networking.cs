@@ -74,9 +74,9 @@ namespace MTLibrary {
                 MemoryStream memStream = new();
                 BinaryWriter binWriter = new(memStream);
 
-                binWriter.Write(this.content.Count);
-
-                binWriter.Write(this.EncodeContent());
+                Byte[] contentBytes = this.EncodeContent();
+                binWriter.Write(contentBytes.Length);
+                binWriter.Write(contentBytes);
 
                 Byte[] got = memStream.ToArray();
 
