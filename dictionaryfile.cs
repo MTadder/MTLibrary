@@ -5,79 +5,85 @@ using System.Text;
 
 namespace MTLibrary {
     public class DictionaryFile {
-        private Dictionary<String, String> dict = new();
-        private static FileStream? GetFileStream(String pathToFile, FileMode? mode=null) {
-            try { return File.Open(pathToFile, mode ?? FileMode.OpenOrCreate);
-            } catch (Exception) { throw; }
-        }
-        private void Load(Byte[] data) {
-            MemoryStream memStream = new(data);
-            BinaryReader binReader = new(memStream);
 
-            if (memStream.Length <= 0) { return; }
-            Byte[] dictBytes = binReader.ReadBytes(binReader.ReadInt32());
-            Dictionary<String, String> readDict(Byte[] data) {
-                MemoryStream memStream = new(data);
-                BinaryReader binReader = new(memStream);
-                Dictionary<String, String> gotDict = new();
-                Int32 dictLength = binReader.ReadInt32();
-                for (Int32 index = 0; index < dictLength; index++) {
-                    this.dict[binReader.ReadString()] = binReader.ReadString();
-                }
-                memStream.Close(); binReader.Close();
-                return gotDict;
-            }; this.dict = readDict(dictBytes);
-        }
+        public Dictionary<String, String> pairs;
+        public Boolean Synced = false;
 
-        public void Save(String fileName) {
-            if (this.dict.Count < 1) { return; }
-            FileStream? fStream = GetFileStream(fileName, FileMode.Truncate);
-            if (fStream is not null) {
-                BinaryWriter binaryWriter = new(fStream);
-                Byte[] getDictBytes() {
+        public FileInfo targetInfo;
+
+        public void Save() {
+            if (this.Synced == false) {
+                Stream myStream = this.targetInfo.Open(FileMode.OpenOrCreate, FileAccess.Write);
+                if (myStream.CanWrite) {
+                    myStream.Seek(0, SeekOrigin.Begin);
                     MemoryStream memStream = new();
-                    BinaryWriter binWriter = new(memStream);
-                    Dictionary<String, String>.Enumerator e = this.dict.GetEnumerator();
-                    for (; e.MoveNext() ;) {
-                        binWriter.Write(e.Current.Key);
-                        binWriter.Write(e.Current.Value);
+                    BinaryWriter memWriter = new(memStream);
+
+                    memWriter.Write((Int32) this.pairs.Count);
+                    var explorer = this.pairs.GetEnumerator();
+                    while (explorer.MoveNext()) {
+                        memWriter.Write((String) explorer.Current.Key);
+                        memWriter.Write((String) explorer.Current.Value);
                     }
 
-                    Byte[] gotBytes = memStream.ToArray();
-                    binaryWriter.Flush(); binaryWriter.Close();
-                    memStream.Flush(); memStream.Close();
-                    return gotBytes;
-                }
-                Byte[] dictbytes = getDictBytes();
-                binaryWriter.Write(dictbytes.Length);
-                binaryWriter.Write(dictbytes);
-
-                binaryWriter.Flush(); binaryWriter.Close();
-                fStream.Flush(); fStream.Close();
-            } else { throw new InvalidOperationException(); }
+                    memWriter.Flush(); memStream.Flush();
+                    myStream.Write(memStream.ToArray()); myStream.Flush();
+                    memWriter.Close(); memStream.Close();
+                } else {
+                    throw new AccessViolationException(
+                    $"Cannot truncate {this.targetInfo.Name}!");
+                } this.Synced = true;
+            }
         }
-        public void Load(String filePath) {
-            FileStream? fStream = GetFileStream(filePath);
-            if (fStream is not null) {
-                Byte[] dataLenBytes = new Byte[4];
-                _= fStream.Read(dataLenBytes);
-                Byte[] DataBytes = new Byte[BitConverter.ToInt32(dataLenBytes)];
-                _= fStream.Read(DataBytes);
-                this.Load(DataBytes);
-            } else { throw new InvalidOperationException(); }
+        public void Load() {
+            FileStream myStream = this.targetInfo.Open(FileMode.OpenOrCreate, FileAccess.Read);
+            if (myStream.CanRead) {
+                _ = myStream.Seek(0L, SeekOrigin.Begin);
+                if (myStream.Length < 4) { return; }
+                BinaryReader memReader = new(myStream);
+
+                Int32 pairs = memReader.ReadInt32();
+                for (Int32 i = 0; i < pairs; i++)
+                    this.pairs[memReader.ReadString()] = memReader.ReadString();
+
+                memReader.Close();
+            } else {
+                throw new AccessViolationException(
+                    $"Cannot read {this.targetInfo.Name}!");
+            }
+            this.Synced = true;
         }
 
-
-        public DictionaryFile(String filePath) {
-            this.Load(filePath);
+        public void Clear() {
+            var explorer = this.pairs.GetEnumerator();
+            while (explorer.MoveNext()) {
+                _ = this.pairs.Remove(explorer.Current.Key);
+            }
         }
-        public void Set(String key, String value) {
-            this.dict[key] = (this.dict is not null) ? value
-                : throw new InvalidOperationException();
+        public void Set(String key, String value) => (this.pairs[key], this.Synced) = (value, false);
+        public void Remove(String key) { this.pairs.Remove(key); this.Synced = false; }
+        public Boolean IsKey(String key) {
+            try {
+                _ = this.pairs[key];
+                return true;
+            } catch { return false; }
+        }
+        public Boolean IsValue(String value) {
+            var explorer = this.pairs.GetEnumerator();
+            while (explorer.MoveNext()) {
+                if (explorer.Current.Value.Equals(value))
+                    return true;
+            } return false;
         }
         public String Get(String key) {
-            return (this.dict is not null) ? (this.dict[key] ?? String.Empty)
-                : throw new InvalidOperationException();
+            try { return this.pairs[key];
+            } catch (KeyNotFoundException) { return String.Empty; }
+        }
+
+        public DictionaryFile(String path, Boolean isLocal = false) {
+            (this.pairs, this.targetInfo) = (new(),
+                new(isLocal ? Environment.CurrentDirectory +@"\"+ path : path));
+            this.Load();
         }
     }
 }
