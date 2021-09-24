@@ -13,9 +13,9 @@ namespace MTLibrary {
 
         public void Save() {
             if (this.Synced == false) {
-                Stream myStream = this.targetInfo.Open(FileMode.OpenOrCreate, FileAccess.Write);
+                FileStream myStream = this.targetInfo.Open(FileMode.Open, FileAccess.Write);
                 if (myStream.CanWrite) {
-                    myStream.Seek(0, SeekOrigin.Begin);
+                    _ = myStream.Seek(0, SeekOrigin.Begin);
                     MemoryStream memStream = new();
                     BinaryWriter memWriter = new(memStream);
 
@@ -27,7 +27,7 @@ namespace MTLibrary {
                     }
 
                     memWriter.Flush(); memStream.Flush();
-                    myStream.Write(memStream.ToArray()); myStream.Flush();
+                    myStream.Write(memStream.ToArray()); myStream.Flush(); myStream.Close();
                     memWriter.Close(); memStream.Close();
                 } else {
                     throw new AccessViolationException(
@@ -36,22 +36,26 @@ namespace MTLibrary {
             }
         }
         public void Load() {
-            FileStream myStream = this.targetInfo.Open(FileMode.OpenOrCreate, FileAccess.Read);
-            if (myStream.CanRead) {
-                _ = myStream.Seek(0L, SeekOrigin.Begin);
-                if (myStream.Length < 4) { return; }
-                BinaryReader memReader = new(myStream);
+            try {
+                using (FileStream targetStream = new(this.targetInfo.FullName, FileMode.OpenOrCreate, FileAccess.Read)) {
+                    if (targetStream.Length < 10) {
+                        this.Synced = this.pairs.Count.Equals(0);
+                        return;
+                    }
+                    using (BinaryReader binReader = new(targetStream)) {
+                        try {
+                            Int32 pairs = binReader.ReadInt32();
 
-                Int32 pairs = memReader.ReadInt32();
-                for (Int32 i = 0; i < pairs; i++)
-                    this.pairs[memReader.ReadString()] = memReader.ReadString();
+                            for (Int32 i = 0; i < pairs; pairs++)
+                                this.pairs[binReader.ReadString()] = binReader.ReadString();
 
-                memReader.Close();
-            } else {
-                throw new AccessViolationException(
-                    $"Cannot read {this.targetInfo.Name}!");
+                            this.Synced = true;
+                        } catch (EndOfStreamException) { throw; }
+                    }
+                }
+            } catch (IOException) {
+                throw;
             }
-            this.Synced = true;
         }
 
         public void Clear() {
@@ -60,8 +64,13 @@ namespace MTLibrary {
                 _ = this.pairs.Remove(explorer.Current.Key);
             }
         }
-        public void Set(String key, String value) => (this.pairs[key], this.Synced) = (value, false);
-        public void Remove(String key) { this.pairs.Remove(key); this.Synced = false; }
+        public void Set(String key, String value) {
+            (this.pairs[key], this.Synced) = (value, false);
+        }
+        public void Remove(String key) {
+            _ = this.pairs.Remove(key);
+            this.Synced = false;
+        }
         public Boolean IsKey(String key) {
             try {
                 _ = this.pairs[key];
