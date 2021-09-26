@@ -13,48 +13,33 @@ namespace MTLibrary {
 
         public void Save() {
             if (this.Synced == false) {
-                FileStream myStream = this.targetInfo.Open(FileMode.Open, FileAccess.Write);
-                if (myStream.CanWrite) {
-                    _ = myStream.Seek(0, SeekOrigin.Begin);
-                    MemoryStream memStream = new();
-                    BinaryWriter memWriter = new(memStream);
-
-                    memWriter.Write((Int32) this.pairs.Count);
-                    var explorer = this.pairs.GetEnumerator();
-                    while (explorer.MoveNext()) {
-                        memWriter.Write((String) explorer.Current.Key);
-                        memWriter.Write((String) explorer.Current.Value);
+                using (FileStream targetStream = this.targetInfo.Open(FileMode.Truncate, FileAccess.Write)) {
+                    using (BinaryWriter binWriter = new(targetStream)) {
+                        binWriter.Write(this.pairs.Count);
+                        var explorer = this.pairs.GetEnumerator();
+                        while (explorer.MoveNext()) {
+                            binWriter.Write(explorer.Current.Key);
+                            binWriter.Write(explorer.Current.Value);
+                        }
                     }
-
-                    memWriter.Flush(); memStream.Flush();
-                    myStream.Write(memStream.ToArray()); myStream.Flush(); myStream.Close();
-                    memWriter.Close(); memStream.Close();
-                } else {
-                    throw new AccessViolationException(
-                    $"Cannot truncate {this.targetInfo.Name}!");
                 } this.Synced = true;
             }
         }
         public void Load() {
-            try {
-                using (FileStream targetStream = new(this.targetInfo.FullName, FileMode.OpenOrCreate, FileAccess.Read)) {
-                    if (targetStream.Length < 10) {
-                        this.Synced = this.pairs.Count.Equals(0);
-                        return;
-                    }
-                    using (BinaryReader binReader = new(targetStream)) {
-                        try {
-                            Int32 pairs = binReader.ReadInt32();
-
-                            for (Int32 i = 0; i < pairs; pairs++)
-                                this.pairs[binReader.ReadString()] = binReader.ReadString();
-
-                            this.Synced = true;
-                        } catch (EndOfStreamException) { throw; }
+            using (FileStream targetStream = this.targetInfo.Open(FileMode.OpenOrCreate, FileAccess.Read)) {
+                Int32 len = (Int32) targetStream.Length;
+                if (len < 16) { return; }
+                Byte[] targetData = new Byte[len];
+                _ = targetStream.Read(targetData);
+                using (MemoryStream memStream = new(targetData)) {
+                    using (BinaryReader binReader = new(memStream)) {
+                        Int32 pairs = binReader.ReadInt32();
+                        for (Int32 i=0; i < pairs; i++) {
+                            this.pairs[binReader.ReadString()] = binReader.ReadString();
+                        }
+                        this.Synced = true;
                     }
                 }
-            } catch (IOException) {
-                throw;
             }
         }
 
@@ -64,9 +49,10 @@ namespace MTLibrary {
                 _ = this.pairs.Remove(explorer.Current.Key);
             }
         }
-        public void Set(String key, String value) {
+        public void Set(String key, String value) =>
             (this.pairs[key], this.Synced) = (value, false);
-        }
+        public void Set(String key) => this.Set(key, String.Empty);
+
         public void Remove(String key) {
             _ = this.pairs.Remove(key);
             this.Synced = false;
