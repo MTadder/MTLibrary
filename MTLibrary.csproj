@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <StartupObject />
-    <Version>0.5.16.21</Version>
+    <Version>0.5.27.21</Version>
     <Authors>MTadder</Authors>
     <Company>MTLaboratory</Company>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
@@ -17,8 +17,10 @@
     <AssemblyOriginatorKeyFile>MTKey.pfx</AssemblyOriginatorKeyFile>
     <DelaySign>true</DelaySign>
     <Nullable>enable</Nullable>
-    <ApplicationIcon />
+    <ApplicationIcon>icon.ico</ApplicationIcon>
     <OutputType>Library</OutputType>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageIconUrl />
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -34,6 +36,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="icon.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
     <None Include="LICENSE">
       <Pack>True</Pack>
       <PackagePath></PackagePath>

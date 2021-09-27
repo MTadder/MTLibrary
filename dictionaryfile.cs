@@ -5,7 +5,6 @@ using System.Text;
 
 namespace MTLibrary {
     public class DictionaryFile {
-
         public Dictionary<String, String> pairs;
         public Boolean Synced = false;
 
@@ -37,7 +36,7 @@ namespace MTLibrary {
         public void Load() {
             using (FileStream targetStream = this.targetInfo.Open(FileMode.OpenOrCreate, FileAccess.Read)) {
                 Int32 len = (Int32) targetStream.Length;
-                if (len < 10) {
+                if (len < 13) {
                     this.Synced = this.pairs.Count.Equals(0);
                     return;
                 }
