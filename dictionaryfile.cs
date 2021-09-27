@@ -12,6 +12,14 @@ namespace MTLibrary {
         public FileInfo targetInfo;
 
         public void Save() {
+            if (this.pairs.Count.Equals(0)) {
+                try {
+                    this.targetInfo.Delete();
+                    _ = this.targetInfo.Create();
+                    this.Synced = true;
+                    return;
+                } catch { throw; };
+            }
             if (this.Synced == false) {
                 using (FileStream targetStream = this.targetInfo.Open(FileMode.Truncate, FileAccess.Write)) {
                     using (BinaryWriter binWriter = new(targetStream)) {
@@ -22,32 +30,35 @@ namespace MTLibrary {
                             binWriter.Write(explorer.Current.Value);
                         }
                     }
-                } this.Synced = true;
+                }
+                this.Synced = true;
             }
         }
         public void Load() {
             using (FileStream targetStream = this.targetInfo.Open(FileMode.OpenOrCreate, FileAccess.Read)) {
                 Int32 len = (Int32) targetStream.Length;
-                if (len < 16) { return; }
+                if (len < 10) {
+                    this.Synced = this.pairs.Count.Equals(0);
+                    return;
+                }
                 Byte[] targetData = new Byte[len];
                 _ = targetStream.Read(targetData);
                 using (MemoryStream memStream = new(targetData)) {
                     using (BinaryReader binReader = new(memStream)) {
                         Int32 pairs = binReader.ReadInt32();
+                        Boolean flag = this.pairs.Count.Equals(pairs) || this.pairs.Count.Equals(0);
                         for (Int32 i=0; i < pairs; i++) {
                             this.pairs[binReader.ReadString()] = binReader.ReadString();
                         }
-                        this.Synced = true;
+                        this.Synced = this.pairs.Count.Equals(pairs) && flag;
                     }
                 }
             }
         }
 
         public void Clear() {
-            var explorer = this.pairs.GetEnumerator();
-            while (explorer.MoveNext()) {
-                _ = this.pairs.Remove(explorer.Current.Key);
-            }
+            this.pairs.Clear();
+            this.Synced = false;
         }
         public void Set(String key, String value) =>
             (this.pairs[key], this.Synced) = (value, false);
