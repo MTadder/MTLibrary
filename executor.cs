@@ -1,66 +1,45 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
+using System.Collections.Generic;
 
 namespace MTLibrary {
-    class Executor {
-        public delegate void OutputEvent(String line);
-        public delegate void ExitEvent();
-        
-        public Boolean running = false;
-        public Process? handle = null;
+    public class Executor : IDisposable {
+        private Process _process;
+        public Boolean HasStarted = false;
+        public ProcessStartInfo StartingInfo;
 
-        public OutputEvent OnErrorOutput;
-        public OutputEvent OnStandardOutput;
-        public ExitEvent OnExit;
+        public Executor(String command = "cmd.exe", String[]? arguments = null) {
+            this.StartingInfo = new(command);
+            this._process = new();
+            this.StartingInfo.FileName = File.Exists(command) ?
+                command : throw new FileNotFoundException($"{nameof(Executor)} could not find file '{command}'");
+            this.StartingInfo.UseShellExecute = false;
 
-        public Boolean Write(String value) {
-            if (this.handle is not null) {
-                try {
-                    this.handle.StandardInput.Write(value);
-                    return true;
-                } catch (Exception) { throw; }
-            } return false;
+            if (arguments is null) {
+                this.StartingInfo.Arguments += " /c";
+            } else {
+                foreach (String arg in arguments) {
+                    this.StartingInfo.Arguments += $" {arg.Trim()}";
+                }
+            }
         }
 
-        public Executor(String command, String[] arguments,
-            OutputEvent? stdEvent, OutputEvent? errEvent, ExitEvent? exEvent) {
-            // Instantiate a new process Handle
-            this.handle = new();
-            // Adjust process StartInfo
-            this.handle.StartInfo.CreateNoWindow = true;
-            this.handle.StartInfo.FileName = command;
-            this.handle.StartInfo.UseShellExecute = true;
-            this.handle.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            this.handle.StartInfo.RedirectStandardOutput = true;
-            this.handle.StartInfo.RedirectStandardInput = true;
-            // Add Arguments to process StartInfo
-            foreach (String arg in arguments) { this.handle.StartInfo.ArgumentList.Add(arg); }
-            // Instantiate output delegates
-            this.OnStandardOutput ??= stdEvent ?? ((String _) => {});
-            this.OnErrorOutput ??= errEvent ?? ((String _) => {});
-            this.OnExit ??= exEvent ?? (()=> {});
-            // Add delegates to process events
-            this.handle.OutputDataReceived += (Object _, DataReceivedEventArgs e) => {
-                if (e.Data is not null) {
-                    if (String.IsNullOrEmpty(e.Data) == false) {
-                        this.OnStandardOutput(e.Data);
-                    }
-                }
-            };
-            this.handle.ErrorDataReceived += (Object _, DataReceivedEventArgs e) => {
-                if (e.Data is not null) {
-                    if (String.IsNullOrEmpty(e.Data) == false) {
-                        this.OnErrorOutput(e.Data);
-                    }
-                }
-            };
-            this.handle.Exited += (Object? _, EventArgs _) => this.OnExit();
-            // Start the process, and set running member
-            this.running = this.handle.Start();
+        public void Start() {
+            if (this._process is not null) {
+                this._process.StartInfo = this.StartingInfo;
+                _ = this._process.Start();
+                this.HasStarted = true;
+            }
+        }
+
+        public void Dispose() {
+            GC.SuppressFinalize(this);
+            if (this._process is not null) {
+                if (this.HasStarted && this._process.HasExited is not true)
+                    this._process.Kill();
+                this._process.Dispose();
+            }
         }
     }
 }
