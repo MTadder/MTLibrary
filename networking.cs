@@ -103,7 +103,9 @@ namespace MTLibrary {
                 return socket.Send(dat).Equals(dat.Length);
             }
 
-            public Boolean Send(Socket socket) => Transmission.Send(this, socket);
+            public Boolean Send(Socket socket) {
+                return Transmission.Send(this, socket);
+            }
 
             public Transmission(Socket sock) {
                 Byte[] data = new Byte[sock.ReceiveBufferSize];
@@ -111,7 +113,9 @@ namespace MTLibrary {
                 this.Decode(data);
             }
 
-            public Transmission(Byte[] data) => this.Decode(data);
+            public Transmission(Byte[] data) {
+                this.Decode(data);
+            }
         }
         public class Server {
             private IPHostEntry hostInfo;
