@@ -28,26 +28,10 @@
   - `void` Load()
   - `void` Clear()
   - `void` Save()
-- [ ] `struct` Networking
-  - [ ] Make this `static`.
-  - [ ] Redo this section with `Async` awareness. 
-  - [ ] `class` Server
-    - [ ] `constructor` (`delegate void` (`Socket` newConnection))
-    - [ ] `void` Send(`Socket` s, `Transmission` t)
-    - [ ] `void` Send(`Socket` s, `Byte[]` data)
-  - [ ] `class` Client
-    - [ ] `constructor` Client(`System.Net.IPAddress` ip, `int` port)
-    - [ ] `void` Send(`Byte[]` data)
-  - [ ] `class` Transmission
-    - [x] `constructor` (`Socket` listenTo)
-    - [x] `constructor` (`Byte[]` data)
-    - [ ] `void` Set(`String` key, `String` value)
-    - [ ] `String` Get(`String` key)
-    - [x] `Boolean` Send(`Socket` to)
 - [ ] Display
   - [x] Write(`String` text, [`ConsoleColor` color])
   - [ ] TypeWrite(`String` text, `Int32` interval, [`Action` alsoDo])
 - [ ] Meta
-  - `String` Author, Email, Codename
-  - `ConsoleColor` ColorCode
+  - [x] `String` Author, Email, Codename
+  - [x] `ConsoleColor` ColorCode
   - [ ] `String` Serialize(`Array` target, [`String` seperator, `Boolean` showIndexes])
