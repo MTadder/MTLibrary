@@ -5,10 +5,10 @@ using System.Reflection;
 
 namespace MTLibrary {
     public static class Meta {
-        public static readonly String author = "MTadder";
-        public static readonly String email = "MTadder@protonmail.com";
+        public static readonly String Author = "MTadder";
+        public static readonly String Email = "MTadder@protonmail.com";
         public static readonly String Codename = "Siberian Sweats";
-        public static readonly ConsoleColor colorCode = ConsoleColor.DarkRed;
+        public static readonly ConsoleColor ColorCode = ConsoleColor.DarkRed;
 
         public static String Serialize(Array target, String seperator = ", ", Boolean showIndexes = true) {
             String serial = "{ ";

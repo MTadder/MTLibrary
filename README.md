@@ -2,31 +2,36 @@
 # C# MTLibrary *v0.5.27.21*
 
 - [x] DictionaryFile
+  - `String` this[`int` index];
+  - `String` this[`String` key];
   - `void` Set(`String` key, [`String` value = `String.Empty`]) 
-  - `String` Get(`String` key) 
+  - `String` Get(`String` key)
   - `void` Remove(`String` key)
-  - `Boolean` IsValue(`String` value)
+  - `Boolean` Contains(`String` value)
   - `Boolean` IsKey(`String` key)
   - `void` Load()
   - `void` Clear()
   - `void` Save()
-- Networking
+- [ ] `struct` Networking
+  - [ ] Make this `static`.
   - [ ] Redo this section with `Async` awareness. 
-  - Server
+  - [ ] `class` Server
     - [ ] `constructor` (`delegate void`(`Socket` newConnection))
     - [ ] `void` Send(`Socket` s, `Transmission` t)
     - [ ] `void` Send(`Socket` s, `Byte[]` data)
-  - Client
-  - Transmission
+  - [ ] `class` Client
+    - `constructor` Client(`System.Net.IPAddress` ip, `int` port)
+    - `void` Send(`Byte[]` data)
+  - [ ] `class` Transmission
+    - [ ] Make this `static`
     - [x] `constructor` (`Socket` listenTo)
     - [x] `constructor` (`Byte[]` data)
     - [ ] Set(`String` key, `String` value)   
     - [x] Send(`Socket` to)
-- Executor
-  - [ ] `constructor`(`String` program, `String[]` arguments)
-  - [ ] Execute()
-- Display
+- [ ] Display
   - [x] Write(`String` text, [`ConsoleColor` color])
   - [ ] TypeWrite(`String` text, `Int32` interval, [`Action` alsoDo])
-- Meta
+- [ ] Meta
+  - `String` Author, Email, Codename
+  - `ConsoleColor` ColorCode
   - [ ] `String` Serialize(`Array`, [`String` seperator, `Boolean` showIndexes])

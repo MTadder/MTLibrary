@@ -7,7 +7,7 @@ namespace MTLibrary {
         #region Constructors
         public DictionaryFile(String path) {
             this._memory = new();
-            this.targetInfo = new(path);
+            this._targetInfo = new(path);
             this.Load();
         }
         #endregion
@@ -15,7 +15,7 @@ namespace MTLibrary {
         #region Properties
         private Dictionary<String, String> _memory;
         private Boolean _synced = false;
-        private FileInfo targetInfo;
+        private FileInfo _targetInfo;
         public String this[String key] {
             get {
                 return this.Get(key);
@@ -59,17 +59,17 @@ namespace MTLibrary {
         public void Save() {
             if (this._memory.Count is 0) {
                 try {
-                    this.targetInfo.Delete();
-                    this.targetInfo.Create().Dispose();
+                    this._targetInfo.Delete();
+                    this._targetInfo.Create().Dispose();
                 } catch {
                     throw;
                 } finally {
-                    this.targetInfo.Refresh();
-                    this._synced = this.targetInfo.Exists;
+                    this._targetInfo.Refresh();
+                    this._synced = this._targetInfo.Exists;
                 };
             }
             if (this._synced is false) {
-                using (FileStream targetStream = this.targetInfo.Open(FileMode.Truncate, FileAccess.Write)) {
+                using (FileStream targetStream = this._targetInfo.Open(FileMode.Truncate, FileAccess.Write)) {
                     using (BinaryWriter binWriter = new(targetStream)) {
                         binWriter.Write(this._memory.Count);
                         var explorer = this._memory.GetEnumerator();
@@ -83,7 +83,7 @@ namespace MTLibrary {
             }
         }
         public void Load() {
-            using (FileStream targetStream = this.targetInfo.Open(FileMode.OpenOrCreate, FileAccess.Read)) {
+            using (FileStream targetStream = this._targetInfo.Open(FileMode.OpenOrCreate, FileAccess.Read)) {
                 Int32 len = (Int32) targetStream.Length;
                 if (len < 13) {
                     this._synced = this._memory.Count.Equals(0);
