@@ -83,6 +83,7 @@ namespace MTLibrary {
             }
         }
         public void Load() {
+            this._targetInfo.Refresh();
             using (FileStream targetStream = this._targetInfo.Open(FileMode.OpenOrCreate, FileAccess.Read)) {
                 Int32 len = (Int32) targetStream.Length;
                 if (len < 13) {
@@ -95,7 +96,11 @@ namespace MTLibrary {
                     using (BinaryReader binReader = new(memStream)) {
                         Int32 pairsToRead = binReader.ReadInt32();
                         for (Int32 i=0; i < pairsToRead; i++) {
-                            this._memory[binReader.ReadString()] = binReader.ReadString();
+                            try { String gotKey = binReader.ReadString();
+                                try { String gotValue = binReader.ReadString();
+                                    this._memory[gotKey] = gotValue;
+                                } catch { continue; }
+                            } catch { continue; }
                         }
                         this._synced = this._memory.Count.Equals(pairsToRead);
                     }
@@ -128,8 +133,7 @@ namespace MTLibrary {
         public Boolean Contains(String value) {
             var explorer = this._memory.GetEnumerator();
             while (explorer.MoveNext()) {
-                if (explorer.Current.Value.Equals(value))
-                    return true;
+                if (explorer.Current.Value.Equals(value)) { return true; }
             } return false;
         }
         public String Get(String key) {
