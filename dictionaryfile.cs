@@ -10,6 +10,21 @@ namespace MTLibrary {
             this._targetInfo = new(path);
             this.Load();
         }
+        public DictionaryFile() {
+            this._memory = new();
+
+            String newFilename = Guid.NewGuid().ToString();
+            try {
+                foreach (String candidateFilename in Directory.EnumerateFiles(Environment.CurrentDirectory)) {
+                    if (Guid.TryParse(candidateFilename.Split(".")[0], out Guid candidateGuid)) {
+                        newFilename = candidateGuid.ToString();
+                        break; // Match the first temporary name
+                    }
+                }
+            } catch { }
+            this._targetInfo = new(newFilename +".bin");
+            this.Load();
+        }
         #endregion
 
         #region Properties
