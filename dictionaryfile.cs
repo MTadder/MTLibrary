@@ -4,26 +4,25 @@ using System.Collections.Generic;
 
 namespace MTLibrary {
     public class DictionaryFile {
+        #region Private Methods
+        internal static String GetAnonymousFilename() {
+            String gotAnonName = Guid.NewGuid().ToString() + ".bin";
+            #warning MAKE THIS CHECK THE FILE ENV FOR THE NAME BEFORE RETURNING
+            return gotAnonName;
+        }
+        #endregion
+
         #region Constructors
-        public DictionaryFile(String path) {
+        internal DictionaryFile() {
             this._memory = new();
-            this._targetInfo = new(path);
+            this._targetInfo = new(GetAnonymousFilename());
+        }
+        public DictionaryFile(String name) : this() {
+            this._targetInfo = new(name);
             this.Load();
         }
-        public DictionaryFile() {
-            this._memory = new();
-
-            String newFilename = Guid.NewGuid().ToString();
-            try {
-                foreach (String candidateFilename in Directory.EnumerateFiles(Environment.CurrentDirectory)) {
-                    if (Guid.TryParse(candidateFilename.Split(".")[0], out Guid candidateGuid)) {
-                        newFilename = candidateGuid.ToString();
-                        break; // Match the first temporary name
-                    }
-                }
-            } catch { }
-            this._targetInfo = new(newFilename +".bin");
-            this.Load();
+        public static DictionaryFile Anonymous() {
+            return new DictionaryFile();
         }
         #endregion
 
@@ -70,7 +69,7 @@ namespace MTLibrary {
         }
         #endregion
 
-        #region Filesystem
+        #region IO Methods
         public void Save() {
             if (this._memory.Count is 0) {
                 try {
@@ -124,7 +123,7 @@ namespace MTLibrary {
         }
         #endregion
 
-        #region Memory
+        #region Memory Methods
         public void Clear() {
             this._memory.Clear();
             this._synced = false;

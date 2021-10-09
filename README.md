@@ -1,11 +1,12 @@
 ![](icon.png "MTLibrary C#")
-# C# MTLibrary *v0.5.27.21*
+# C# MTLibrary *v0.5.44.21*
 
 - [x] DictionaryFile
   - Acts as a controller for a File-synchronized
     `Dictionary<String, String>` object.
   - Useful for easily persisting `String` pairs in a locally-stored binary file format.
-  - When assigning a new value, the binary file will still not contain the it.
+  - When assigning a new value, the binary file (on disk) will not contain the value
+    automatically.
     
     Call `Save` in order to synchronize new keys/value inside the binary.
     However, if you were to try to `Get` an unsynchronized key, this controller object
