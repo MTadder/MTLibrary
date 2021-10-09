@@ -4,19 +4,18 @@ using System.Collections.Generic;
 
 namespace MTLibrary {
     public class DictionaryFile {
-        #region Private Methods
+        #region Internals
         internal static String GetAnonymousFilename() {
             String gotAnonName = Guid.NewGuid().ToString() + ".bin";
-            #warning MAKE THIS CHECK THE FILE ENV FOR THE NAME BEFORE RETURNING
-            return gotAnonName;
+            return File.Exists(gotAnonName) ? GetAnonymousFilename() : gotAnonName;
         }
-        #endregion
-
-        #region Constructors
         internal DictionaryFile() {
             this._memory = new();
             this._targetInfo = new(GetAnonymousFilename());
         }
+        #endregion
+
+        #region Constructors
         public DictionaryFile(String name) : this() {
             this._targetInfo = new(name);
             this.Load();
@@ -31,15 +30,10 @@ namespace MTLibrary {
         private Boolean _synced = false;
         private FileInfo _targetInfo;
         public String this[String key] {
-            get {
-                return this.Get(key);
-            }
+            get { return this.Get(key); }
             set {
-                if (value is null) {
-                    this.Remove(key);
-                } else {
-                    this.Set(key, value);
-                }
+                if (value is null) { this.Remove(key); }
+                else { this.Set(key, value); }
             }
         }
         public String this[Int32 index] {
@@ -49,7 +43,7 @@ namespace MTLibrary {
                 while (memExplorer.MoveNext() && index <= i) {
                     if (index.Equals(i)) {
                         return memExplorer.Current.Value;
-                    }
+                    } else { continue; }
                 }
                 throw new IndexOutOfRangeException(
                     $"index {index} is not within memory!");
@@ -61,7 +55,7 @@ namespace MTLibrary {
                     if (index.Equals(i)) {
                         this[memExplorer.Current.Key] = value;
                         return;
-                    }
+                    } else { continue; }
                 }
                 throw new IndexOutOfRangeException(
                     $"index {index} is not within memory!");
@@ -69,15 +63,13 @@ namespace MTLibrary {
         }
         #endregion
 
-        #region IO Methods
+        #region IO
         public void Save() {
             if (this._memory.Count is 0) {
                 try {
                     this._targetInfo.Delete();
                     this._targetInfo.Create().Dispose();
-                } catch {
-                    throw;
-                } finally {
+                } catch { } finally {
                     this._targetInfo.Refresh();
                     this._synced = this._targetInfo.Exists;
                 };
@@ -123,7 +115,7 @@ namespace MTLibrary {
         }
         #endregion
 
-        #region Memory Methods
+        #region Memory
         public void Clear() {
             this._memory.Clear();
             this._synced = false;
