@@ -1,5 +1,5 @@
-![](icon.png "MTLibrary C#")
-# C# MTLibrary *v0.5.45.21*
+# C# MTLibrary v0.5.45.21
+![Logo](icon.png "MTLibrary:C#")
 
 - [x] DictionaryFile
   - Acts as a controller for a File-synchronized
