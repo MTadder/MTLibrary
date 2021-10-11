@@ -1,5 +1,5 @@
 ![](icon.png "MTLibrary C#")
-# C# MTLibrary *v0.5.44.21*
+# C# MTLibrary *v0.5.45.21*
 
 - [x] DictionaryFile
   - Acts as a controller for a File-synchronized
@@ -18,6 +18,9 @@
     `Get` will not `Load` the binary and return the already-saved key;
     instead, it will return `String.Empty`, because the binary
     has not yet been instructed to synchronize (with `Load`).
+  - `static constructor` Anonymous()
+  - `static explicit operator` `this`(`String[]` a)
+  - `static implicit operator` `String[]`(`this` df)
   - `constructor` this(path)
   - `String` this[`int` index]
   - `String` this[`String` key]
@@ -29,6 +32,16 @@
   - `void` Load()
   - `void` Clear()
   - `void` Save()
+  - `String[]` ToArray()
+- [ ] Vector
+  - [x] `constructor` this()
+  - [x] `constructor` this(`Double` x, `Double` y)
+  - [x] `constructor` this(`Double` x, `Double` y, `Double` rotation) 
+  - [x] `constructor` this(`Double` x, `Double` y, `Double` xV,
+        `Double` yV) 
+  - [x] `constructor` this(`Double` x, `Double` y, `Double` xV,
+        `Double` yV, `Double` rot)
+  - [x] `void` Step(`Double` deltaTime)
 - [ ] Display
   - [x] Write(`String` text, [`ConsoleColor` color])
   - [ ] TypeWrite(`String` text, `Int32` interval, [`Action` alsoDo])

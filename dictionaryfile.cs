@@ -61,18 +61,45 @@ namespace MTLibrary {
                     $"index {index} is not within memory!");
             }
         }
+        public static implicit operator String[](DictionaryFile df) {
+            return df.ToArray();
+        }
+        public static explicit operator DictionaryFile(String[] pairs) {
+            var df = DictionaryFile.Anonymous();
+            if (pairs.Length % 2 == 0) {
+                for (Int32 i=0; i < pairs.Length; i+=2) {
+                    try { String key = pairs[i];
+                        try { String val = pairs[i + 1];
+                            df.Set(key, val);
+                        } catch { continue; }
+                    } catch { continue; }
+                } return df;
+            } else { throw new ArgumentOutOfRangeException( $"{nameof(pairs)}",
+                    $"Cannot explicity parse an uneven Array!"); }
+        }
         #endregion
 
-        #region IO
+        #region Methods
+        public String[] ToArray() {
+            Int32 len = this._memory.Count*2;
+            String[] array = new String[len];
+            var memExplorer = this._memory.GetEnumerator();
+            UInt32 idx = 0;
+            while (memExplorer.MoveNext() && idx <= len) {
+                array[idx] = memExplorer.Current.Key;
+                idx++;
+                array[idx] = memExplorer.Current.Value;
+                idx++;
+            } return array;
+        }
         public void Save() {
             if (this._memory.Count is 0) {
                 try {
-                    this._targetInfo.Delete();
+                    try { this._targetInfo.Delete(); } catch { };
                     this._targetInfo.Create().Dispose();
-                } catch { } finally {
                     this._targetInfo.Refresh();
                     this._synced = this._targetInfo.Exists;
-                };
+                } catch { };
             }
             if (this._synced is false) {
                 using (FileStream targetStream = this._targetInfo.Open(FileMode.Truncate, FileAccess.Write)) {
@@ -113,9 +140,6 @@ namespace MTLibrary {
                 }
             }
         }
-        #endregion
-
-        #region Memory
         public void Clear() {
             this._memory.Clear();
             this._synced = false;
