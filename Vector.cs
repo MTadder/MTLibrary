@@ -27,8 +27,7 @@ namespace MTLibrary {
             public Double X;
             public Double Y;
             public Coordinate(Double x, Double y) {
-                this.X = x;
-                this.Y = y;
+                this.X = x; this.Y = y;
             }
             public override String ToString() {
                 return $"[{this.X}, {this.Y}]";

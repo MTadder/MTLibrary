@@ -7,21 +7,21 @@ namespace MTLibrary {
         #region Internals
         internal static String GetAnonymousFilename() {
             String gotAnonName = Guid.NewGuid().ToString() + ".bin";
+            gotAnonName = gotAnonName.Replace("-", "");
             return File.Exists(gotAnonName) ? GetAnonymousFilename() : gotAnonName;
-        }
-        internal DictionaryFile() {
-            this._memory = new();
-            this._targetInfo = new(GetAnonymousFilename());
         }
         #endregion
 
         #region Constructors
-        public DictionaryFile(String name) : this() {
-            this._targetInfo = new(name);
+        public DictionaryFile() {
+            this._memory = new();
+            this._targetInfo = new(GetAnonymousFilename());
             this.Load();
         }
-        public static DictionaryFile Anonymous() {
-            return new DictionaryFile();
+        public DictionaryFile(String name) {
+            this._memory = new();
+            this._targetInfo = new(name);
+            this.Load();
         }
         #endregion
 
@@ -29,6 +29,8 @@ namespace MTLibrary {
         private Dictionary<String, String> _memory;
         private Boolean _synced = false;
         private FileInfo _targetInfo;
+        public String Filename { get { return this._targetInfo.Name; } }
+        public String Filepath { get { return this._targetInfo.FullName; } }
         public String this[String key] {
             get { return this.Get(key); }
             set {
@@ -65,7 +67,7 @@ namespace MTLibrary {
             return df.ToArray();
         }
         public static explicit operator DictionaryFile(String[] pairs) {
-            var df = DictionaryFile.Anonymous();
+            var df = new DictionaryFile();
             if (pairs.Length % 2 == 0) {
                 for (Int32 i=0; i < pairs.Length; i+=2) {
                     try { String key = pairs[i];
@@ -94,7 +96,8 @@ namespace MTLibrary {
         }
         public void Save() {
             if (this._memory.Count is 0) {
-                try { try { this._targetInfo.Delete(); } catch { };
+                try {
+                    this.Delete();
                     this._targetInfo.Create().Dispose();
                     this._targetInfo.Refresh();
                     this._synced = this._targetInfo.Exists;
@@ -150,6 +153,10 @@ namespace MTLibrary {
         public void Remove(String key) {
             _ = this._memory.Remove(key);
             this._synced = false;
+        }
+        public void Delete() {
+            if (this._targetInfo.Exists)
+                try { this._targetInfo.Delete(); } catch { throw; };
         }
         public Boolean IsKey(String key) {
             try {
