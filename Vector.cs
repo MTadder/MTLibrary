@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MTLibrary {
+    /// <summary>
+    /// Acts as a wrapper class for position, velocity & rotation Doubles
+    /// </summary>
     class Vector {
         #region Internals
         internal struct Rotator {
@@ -14,6 +13,9 @@ namespace MTLibrary {
                 this.Value = value;
                 this.Velocity = velocity;
             }
+            public override String ToString() {
+                return $"{this.Value}^{this.Velocity}";
+            }
             public void Torque(Double amount) {
                 this.Velocity += amount;
             }
@@ -21,11 +23,15 @@ namespace MTLibrary {
                 this.Value += this.Velocity * deltaTime;
             }
         }
-        internal struct Coordinate { 
+        internal struct Coordinate {
             public Double X;
             public Double Y;
             public Coordinate(Double x, Double y) {
-                this.X = x; this.Y = y;
+                this.X = x;
+                this.Y = y;
+            }
+            public override String ToString() {
+                return $"[{this.X}, {this.Y}]";
             }
             public void Step(Coordinate velocity, Double deltaTime) {
                 velocity.Multiply(deltaTime);
@@ -38,32 +44,36 @@ namespace MTLibrary {
                 return this.Distance(to.X, to.Y);
             }
             public void Add(Double x, Double y) {
-                this.X += x; this.Y += y;
+                (this.X, this.Y) = (this.X + x, this.Y + y);
             }
             public void Add(Coordinate other) {
                 this.Add(other.X, other.Y);
             }
             public void Subtract(Double x, Double y) {
-                this.X -= x; this.Y -= y;
+                (this.X, this.Y) = (this.X - x, this.Y - y);
             }
             public void Subtract(Coordinate other) {
                 this.Subtract(other.X, other.Y);
             }
             public void Multiply(Double by) {
-                this.X *= by; this.Y *= by;
+                (this.X, this.Y) = (this.X * by, this.Y * by);
             }
             public void Multiply(Coordinate other) {
-                this.X *= other.X; this.Y *= other.Y;
+                (this.X, this.Y) = (this.X * other.X, this.Y * other.Y);
             }
             public void Divide(Double by) {
-                this.X /= by; this.Y /= by;
+                (this.X, this.Y) = (this.X / by, this.Y / by);
             }
             public void Divide(Coordinate other) {
-                this.X /= other.X; this.Y /= other.Y;
+                (this.X, this.Y) = (this.X / other.X, this.Y / other.Y);
             }
             public void Pow(Double toPower) {
                 this.X = Math.Pow(this.X, toPower);
                 this.Y = Math.Pow(this.Y, toPower);
+            }
+            public void Pow(Double xPow, Double yPow) {
+                this.X = Math.Pow(this.X, xPow);
+                this.Y = Math.Pow(this.Y, yPow);
             }
             public void Clamp(Double minX, Double maxX, Double minY, Double maxY) {
                 this.X = Math.Clamp(this.X, minX, maxX);
@@ -72,7 +82,7 @@ namespace MTLibrary {
             public void Clamp(Coordinate min, Coordinate max) {
                 this.Clamp(min.X, max.X, min.Y, max.Y);
             }
-        };
+        }
         internal Coordinate _position;
         internal Rotator _rotation;
         internal Coordinate _velocity;
@@ -120,6 +130,15 @@ namespace MTLibrary {
         public void Step(Double deltaTime) {
             this._position.Step(this._velocity, deltaTime);
             this._rotation.Step(deltaTime);
+        }
+        public void Torque(Double amount) {
+            this._rotation.Torque(amount);
+        }
+        public Double GetLength() {
+            return this._position.Distance(this._velocity);
+        }
+        public override String ToString() {
+            return $"[{this._position}]^[{this._velocity}]@{this._rotation}";
         }
         #endregion
     }

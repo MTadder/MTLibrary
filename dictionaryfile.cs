@@ -94,8 +94,7 @@ namespace MTLibrary {
         }
         public void Save() {
             if (this._memory.Count is 0) {
-                try {
-                    try { this._targetInfo.Delete(); } catch { };
+                try { try { this._targetInfo.Delete(); } catch { };
                     this._targetInfo.Create().Dispose();
                     this._targetInfo.Refresh();
                     this._synced = this._targetInfo.Exists;
@@ -111,8 +110,7 @@ namespace MTLibrary {
                             binWriter.Write(explorer.Current.Value);
                         }
                     }
-                }
-                this._synced = true;
+                } this._synced = true;
             }
         }
         public void Load() {
@@ -134,8 +132,7 @@ namespace MTLibrary {
                                     this._memory[gotKey] = gotValue;
                                 } catch { continue; }
                             } catch { continue; }
-                        }
-                        this._synced = this._memory.Count.Equals(pairsToRead);
+                        } this._synced = this._memory.Count.Equals(pairsToRead);
                     }
                 }
             }
