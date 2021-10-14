@@ -18,6 +18,10 @@ namespace MTLibrary {
             this._targetInfo = new(GetAnonymousFilename());
             this.Load();
         }
+        public DictionaryFile(DictionaryFile origin) {
+            this._memory = new(origin._memory);
+            this._targetInfo = origin._targetInfo;
+        }
         public DictionaryFile(String name) {
             this._memory = new();
             this._targetInfo = new(name);
@@ -29,6 +33,7 @@ namespace MTLibrary {
         private Dictionary<String, String> _memory;
         private Boolean _synced = false;
         private FileInfo _targetInfo;
+        public Int32 Count { get { return this._memory.Count; } }
         public String Filename { get { return this._targetInfo.Name; } }
         public String Filepath { get { return this._targetInfo.FullName; } }
         public String this[String key] {
@@ -40,31 +45,64 @@ namespace MTLibrary {
         }
         public String this[Int32 index] {
             get {
-                var memExplorer = this._memory.GetEnumerator();
-                Int32 i = 0;
-                while (memExplorer.MoveNext() && index <= i) {
-                    if (index.Equals(i)) {
-                        return memExplorer.Current.Value;
-                    } else { continue; }
+                if (this.IsKey(index.ToString())) {
+                    return this._memory[index.ToString()];
+                } else {
+                    if (index <= this.Count) {
+                        var explorer = this._memory.GetEnumerator();
+                        Int32 idx = 0;
+                        while (explorer.MoveNext() && idx <= this.Count) {
+                            if (idx.Equals(index)) {
+                                return explorer.Current.Value;
+                            }
+                        }
+                    }
                 }
-                throw new IndexOutOfRangeException(
-                    $"index {index} is not within memory!");
+                return String.Empty;
             }
             set {
-                var memExplorer = this._memory.GetEnumerator();
-                Int32 i = 0;
-                while (memExplorer.MoveNext() && index <= i) {
-                    if (index.Equals(i)) {
-                        this[memExplorer.Current.Key] = value;
+                if (value is null) {
+                    if (this.IsKey(index.ToString())) {
+                        this.Remove(index.ToString());
                         return;
-                    } else { continue; }
+                    } else {
+                        var explorer = this._memory.GetEnumerator();
+                        Int32 idx = 0;
+                        while (explorer.MoveNext() && idx <= this.Count) {
+                            if (idx.Equals(index)) {
+                                this.Remove(explorer.Current.Key);
+                                return;
+                            }
+                        }
+                    }
+                } else {
+                    if (this.IsKey(index.ToString())) {
+                        this._memory[index.ToString()] = value;
+                    } else {
+                        if (index <= this.Count) {
+                            var explorer = this._memory.GetEnumerator();
+                            Int32 idx = 0;
+                            while (explorer.MoveNext() && idx <= this.Count) {
+                                if (idx.Equals(index)) {
+                                    this.Set(explorer.Current.Key, value);
+                                    return;
+                                }
+                            }
+                        } this.Set(index.ToString(), value);
+                    }
                 }
-                throw new IndexOutOfRangeException(
-                    $"index {index} is not within memory!");
             }
         }
         public static implicit operator String[](DictionaryFile df) {
             return df.ToArray();
+        }
+        public static implicit operator Dictionary<String, String>(DictionaryFile df) {
+            return df._memory;
+        }
+        public static explicit operator DictionaryFile(Dictionary<String, String> pairs) {
+            var df = new DictionaryFile();
+            df._memory = pairs;
+            return df;
         }
         public static explicit operator DictionaryFile(String[] pairs) {
             var df = new DictionaryFile();
@@ -83,10 +121,10 @@ namespace MTLibrary {
 
         #region Methods
         public String[] ToArray() {
-            Int32 len = this._memory.Count*2;
+            Int32 len = this.Count*2;
             String[] array = new String[len];
             var memExplorer = this._memory.GetEnumerator();
-            UInt32 idx = 0;
+            Int32 idx = 0;
             while (memExplorer.MoveNext() && idx <= len) {
                 array[idx] = memExplorer.Current.Key;
                 idx++;
@@ -95,18 +133,18 @@ namespace MTLibrary {
             } return array;
         }
         public void Save() {
-            if (this._memory.Count is 0) {
+            if (this.Count is 0) {
                 try {
                     this.Delete();
-                    this._targetInfo.Create().Dispose();
                     this._targetInfo.Refresh();
-                    this._synced = this._targetInfo.Exists;
-                } catch { };
+                    this._synced = true;
+                } catch { throw; };
+                return;
             }
             if (this._synced is false) {
                 using (FileStream targetStream = this._targetInfo.Open(FileMode.Truncate, FileAccess.Write)) {
                     using (BinaryWriter binWriter = new(targetStream)) {
-                        binWriter.Write(this._memory.Count);
+                        binWriter.Write(this.Count);
                         var explorer = this._memory.GetEnumerator();
                         while (explorer.MoveNext()) {
                             binWriter.Write(explorer.Current.Key);
@@ -121,7 +159,7 @@ namespace MTLibrary {
             using (FileStream targetStream = this._targetInfo.Open(FileMode.OpenOrCreate, FileAccess.Read)) {
                 Int32 len = (Int32) targetStream.Length;
                 if (len < 13) {
-                    this._synced = this._memory.Count.Equals(0);
+                    this._synced = this.Count.Equals(0);
                     return;
                 }
                 Byte[] targetData = new Byte[len];
@@ -135,14 +173,15 @@ namespace MTLibrary {
                                     this._memory[gotKey] = gotValue;
                                 } catch { continue; }
                             } catch { continue; }
-                        } this._synced = this._memory.Count.Equals(pairsToRead);
+                        } this._synced = this.Count.Equals(pairsToRead);
                     }
                 }
             }
         }
         public void Clear() {
             this._memory.Clear();
-            this._synced = false;
+            this._synced = true;
+            this.Delete();
         }
         public void Set(String key, String value) {
             (this._memory[key], this._synced) = (value, false);
@@ -155,6 +194,7 @@ namespace MTLibrary {
             this._synced = false;
         }
         public void Delete() {
+            this._targetInfo.Refresh();
             if (this._targetInfo.Exists)
                 try { this._targetInfo.Delete(); } catch { throw; };
         }
