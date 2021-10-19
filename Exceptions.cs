@@ -5,13 +5,24 @@ namespace MTLibrary {
         public class MT : Exception {
             internal static readonly String _handle = $"{Environment.NewLine}" +
                 $"Report this @ https://github.com/MTadder/MTLibrary/issues/new <3";
-            public MT(String msg) : base($"{msg}{_handle}") {}
-            public MT(String msg, Exception inner) : base($"{msg}{_handle}", inner) {}
+            public MT(String msg)
+                : base($"{msg}{_handle}") {}
+            public MT(String msg, Exception inner)
+                : base($"{msg}{_handle}", inner) {}
         }
         public class FileAccessException : Exception {
-            public FileAccessException(String fileName, String msg) : base(fileName + msg) {}
-            public FileAccessException(String fileName, String msg, Exception inner) : base(fileName + msg, inner) {}
-            public FileAccessException(String msg, Exception inner) : base(msg, inner) {}
+            public FileAccessException(String fileName, String msg)
+                : base(fileName + msg) {}
+            public FileAccessException(String fileName, String msg, Exception inner)
+                : base(fileName + msg, inner) {}
+            public FileAccessException(String msg, Exception inner)
+                : base(msg, inner) {}
+        }
+        public class MathematicalExeption : Exception {
+            public MathematicalExeption(String equation, String purpose)
+                : base($"({equation}) failed {purpose}") { }
+            public MathematicalExeption(String equation, String purpose, Double got)
+                : base($"({equation}) failed {purpose}. (got {got})") { }
         }
     }
 }

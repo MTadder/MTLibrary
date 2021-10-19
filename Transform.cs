@@ -1,12 +1,9 @@
 ﻿using System;
 
 namespace MTLibrary {
-    /// <summary>
-    /// Acts as a wrapper class for position, velocity & rotation Doubles
-    /// </summary>
-    class Vector {
-        #region Internals
-        internal struct Rotator {
+    public class Transform {
+        #region Data Structures
+        public struct Rotator {
             public Double Value;
             public Double Velocity;
             public Rotator(Double value, Double velocity) {
@@ -29,7 +26,7 @@ namespace MTLibrary {
                 return new Rotator(r1.Value - r2.Value, r2.Velocity - r2.Velocity);
             }
         }
-        internal struct Coordinate {
+        public struct Coordinate {
             public Double X;
             public Double Y;
             public Coordinate(Double x, Double y) {
@@ -85,10 +82,10 @@ namespace MTLibrary {
                 (this.X, this.Y) = (this.X / other.X, this.Y / other.Y);
             }
             public static Coordinate operator /(Coordinate c1, Coordinate c2) {
-                c1.Multiply(c2); return c1;
+                c1.Divide(c2); return c1;
             }
             public static Coordinate operator /(Coordinate c1, Double by) {
-                c1.Multiply(by); return c1;
+                c1.Divide(by); return c1;
             }
             public void Pow(Double toPower) {
                 this.X = Math.Pow(this.X, toPower);
@@ -112,33 +109,34 @@ namespace MTLibrary {
                 this.Clamp(min.X, max.X, min.Y, max.Y);
             }
         }
+        #endregion
+        #region Internals
         internal Coordinate _position;
         internal Rotator _rotation;
         internal Coordinate _velocity;
-        internal Vector() {
+        internal Transform() {
             this._position = new(0D, 0D);
             this._rotation = new(0D, 0D);
             this._velocity = new(0D, 0D);
         }
         #endregion
         #region Contructors
-        public Vector(Double x, Double y) : this() {
+        public Transform(Double x, Double y) : this() {
             this._position.Add(x, y);
         }
-        public Vector(Double x, Double y, Double rotation) : this() {
+        public Transform(Double x, Double y, Double rotation) : this() {
             this._position.Add(x, y);
             this._rotation.Value = rotation;
         }
-        public Vector(Double x, Double y, Double xV, Double yV) : this() {
+        public Transform(Double x, Double y, Double xV, Double yV) : this() {
             this._position.Add(x, y);
             this._velocity.Add(xV, yV);
         }
-        public Vector(Double x, Double y, Double xV, Double yV,
+        public Transform(Double x, Double y, Double xV, Double yV,
             Double rotation, Double radialVelocity) : this() {
             this._position.Add(x, y);
             this._velocity.Add(xV, yV);
-            this._rotation.Value = rotation;
-            this._rotation.Velocity = radialVelocity;
+            this._rotation = new(rotation, radialVelocity);
         }
         #endregion
         #region Properties
@@ -154,17 +152,48 @@ namespace MTLibrary {
             get { return this._rotation; }
             set { this._rotation = value; }
         }
+        public Double Magnitude {
+            get { return this._position.Distance(this._velocity); }
+        }
+        public static Transform operator +(Transform t1, Transform t2) {
+            return new(t1.Position.X + t2.Position.X, t1.Position.Y + t2.Position.Y,
+                t1.Velocity.X + t2.Velocity.X, t1.Velocity.Y + t2.Velocity.Y, 
+                t1.Rotation.Value + t2.Rotation.Value, t1.Rotation.Velocity + t2.Rotation.Velocity);
+        }
+        public static Transform operator -(Transform t1, Transform t2) {
+            return new(t1.Position.X - t2.Position.X, t1.Position.Y - t2.Position.Y,
+                t1.Velocity.X - t2.Velocity.X, t1.Velocity.Y - t2.Velocity.Y,
+                t1.Rotation.Value - t2.Rotation.Value, t1.Rotation.Velocity - t2.Rotation.Velocity);
+        }
+        public static Transform operator *(Transform t1, Transform t2) {
+            return new(t1.Position.X * t2.Position.X, t1.Position.Y * t2.Position.Y,
+                t1.Velocity.X * t2.Velocity.X, t1.Velocity.Y * t2.Velocity.Y,
+                t1.Rotation.Value * t2.Rotation.Value, t1.Rotation.Velocity * t2.Rotation.Velocity);
+        }
+        public static Transform operator /(Transform t1, Transform t2) {
+            return new(t1.Position.X / t2.Position.X, t1.Position.Y / t2.Position.Y,
+                t1.Velocity.X / t2.Velocity.X, t1.Velocity.Y / t2.Velocity.Y,
+                t1.Rotation.Value / t2.Rotation.Value, t1.Rotation.Velocity / t2.Rotation.Velocity);
+        }
+        public static Transform operator ^(Transform t1, Transform t2) {
+            return new(Math.Pow(t1.Position.X, t2.Position.X), Math.Pow(t1.Position.Y, t2.Position.Y),
+                Math.Pow(t1.Velocity.X, t2.Velocity.X), Math.Pow(t1.Velocity.Y, t2.Velocity.Y),
+                Math.Pow(t1.Rotation.Value, t2.Rotation.Value), Math.Pow(t1.Rotation.Velocity, t2.Rotation.Velocity));
+        }
         #endregion
         #region Methods
+        public Double Distance(Coordinate to) {
+            return this._position.Distance(to);
+        }
+        public Double Distance(Transform to) {
+            return this.Distance(to._position);
+        }
         public void Step(Double deltaTime) {
             this._position.Step(this._velocity, deltaTime);
             this._rotation.Step(deltaTime);
         }
         public void Torque(Double amount) {
             this._rotation.Torque(amount);
-        }
-        public Double GetLength() {
-            return this._position.Distance(this._velocity);
         }
         public override String ToString() {
             return $"[{this._position}]^[{this._velocity}]@{this._rotation}";
