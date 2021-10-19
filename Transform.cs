@@ -170,15 +170,30 @@ namespace MTLibrary {
                 t1.Velocity.X * t2.Velocity.X, t1.Velocity.Y * t2.Velocity.Y,
                 t1.Rotation.Value * t2.Rotation.Value, t1.Rotation.Velocity * t2.Rotation.Velocity);
         }
+        public static Transform operator *(Transform t1, Double by) {
+            return new(t1.Position.X * by, t1.Position.Y * by,
+                t1.Velocity.X * by, t1.Velocity.Y * by,
+                t1.Rotation.Value * by, t1.Rotation.Velocity * by);
+        }
         public static Transform operator /(Transform t1, Transform t2) {
             return new(t1.Position.X / t2.Position.X, t1.Position.Y / t2.Position.Y,
                 t1.Velocity.X / t2.Velocity.X, t1.Velocity.Y / t2.Velocity.Y,
                 t1.Rotation.Value / t2.Rotation.Value, t1.Rotation.Velocity / t2.Rotation.Velocity);
         }
+        public static Transform operator /(Transform t1, Double by) {
+            return new(t1.Position.X / by, t1.Position.Y / by,
+                t1.Velocity.X / by, t1.Velocity.Y / by,
+                t1.Rotation.Value / by, t1.Rotation.Velocity / by);
+        }
         public static Transform operator ^(Transform t1, Transform t2) {
             return new(Math.Pow(t1.Position.X, t2.Position.X), Math.Pow(t1.Position.Y, t2.Position.Y),
                 Math.Pow(t1.Velocity.X, t2.Velocity.X), Math.Pow(t1.Velocity.Y, t2.Velocity.Y),
                 Math.Pow(t1.Rotation.Value, t2.Rotation.Value), Math.Pow(t1.Rotation.Velocity, t2.Rotation.Velocity));
+        }
+        public static Transform operator ^(Transform t1, Double to) {
+            return new(Math.Pow(t1.Position.X, to), Math.Pow(t1.Position.Y, to),
+                Math.Pow(t1.Velocity.X, to), Math.Pow(t1.Velocity.Y, to),
+                Math.Pow(t1.Rotation.Value, to), Math.Pow(t1.Rotation.Velocity, to));
         }
         #endregion
         #region Methods
