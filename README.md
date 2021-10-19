@@ -1,7 +1,7 @@
-# C# MTLibrary v0.5.45.21
-![Logo](icon.png "MTLibrary:C#")
+# MTLibrary (C#) v0.5.47.21
+![Logo](icon.png "MTLibrary (C#)")
 
-- [x] DictionaryFile
+- [x] `class` DictionaryFile
   - Acts as a controller for a File-synchronized
     `Dictionary<String, String>` object.
   - Useful for easily persisting `String` pairs in a locally-stored binary file format.
@@ -18,34 +18,24 @@
     `Get` will not `Load` the binary and return the already-saved key;
     instead, it will return `String.Empty`, because the binary
     has not yet been instructed to synchronize (with `Load`).
-  - `static constructor` Anonymous()
-  - `static explicit operator` `this`(`String[]` a)
+  - `static explicit operator` `this`(`Dictionary<String, String>` pairs)
+  - `static explicit operator` `this`(`String[]` pairs)
+  - `static implicit operator` `Dictionary<String, String>`(`this` df)
   - `static implicit operator` `String[]`(`this` df)
-  - `constructor` this(path)
-  - `String` this[`int` index]
+  - `constructor` this(`String` path = `Guid.NewGuid().ToString()`)
   - `String` this[`String` key]
   - `String` Get(`String` key)
   - `void` Remove(`String` key)
   - `Boolean` IsKey(`String` key)
-  - `Boolean` Contains(`String` value)
+  - `Boolean` IsValue(`String` value)
   - `void` Set(`String` key, [`String` value = `String.Empty`]) 
   - `void` Load()
   - `void` Clear()
   - `void` Save()
-  - `String[]` ToArray()
-- [ ] Vector
-  - [x] `constructor` this()
-  - [x] `constructor` this(`Double` x, `Double` y)
-  - [x] `constructor` this(`Double` x, `Double` y, `Double` rotation) 
-  - [x] `constructor` this(`Double` x, `Double` y, `Double` xV,
-        `Double` yV) 
-  - [x] `constructor` this(`Double` x, `Double` y, `Double` xV,
-        `Double` yV, `Double` rot)
-  - [x] `void` Step(`Double` deltaTime)
-- [ ] Display
-  - [x] Write(`String` text, [`ConsoleColor` color])
-  - [ ] TypeWrite(`String` text, `Int32` interval, [`Action` alsoDo])
-- [ ] Meta
+- [ ] `class` Vector
+  - [ ] `struct` Rotator
+  - [ ] `struct` Coordinate
+- [ ] `static class` Meta
   - [x] `String` Author, Email, Codename
   - [x] `ConsoleColor` ColorCode
   - [ ] `String` Serialize(`Array` target, [`String` seperator, `Boolean` showIndexes])

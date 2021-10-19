@@ -7,8 +7,8 @@ namespace MTLibrary {
     public static class Meta {
         public static readonly String Author = "MTadder";
         public static readonly String Email = "MTadder@protonmail.com";
-        public static readonly String Codename = "Siberian Sweats";
-        public static readonly ConsoleColor ColorCode = ConsoleColor.DarkRed;
+        public static readonly String Codename = "Choppuh";
+        public static readonly ConsoleColor ColorCode = ConsoleColor.Red;
 
         public static String Serialize(Array target, String seperator = ", ", Boolean showIndexes = true) {
             String serial = "{ ";

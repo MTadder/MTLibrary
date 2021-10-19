@@ -22,6 +22,12 @@ namespace MTLibrary {
             public void Step(Double deltaTime) {
                 this.Value += this.Velocity * deltaTime;
             }
+            public static Rotator operator +(Rotator r1, Rotator r2) {
+                return new Rotator(r1.Value + r2.Value, r2.Velocity + r2.Velocity);
+            }
+            public static Rotator operator -(Rotator r1, Rotator r2) {
+                return new Rotator(r1.Value - r2.Value, r2.Velocity - r2.Velocity);
+            }
         }
         internal struct Coordinate {
             public Double X;
@@ -48,11 +54,17 @@ namespace MTLibrary {
             public void Add(Coordinate other) {
                 this.Add(other.X, other.Y);
             }
+            public static Coordinate operator +(Coordinate c1, Coordinate c2) {
+                c1.Add(c2); return c1;
+            }
             public void Subtract(Double x, Double y) {
                 (this.X, this.Y) = (this.X - x, this.Y - y);
             }
             public void Subtract(Coordinate other) {
                 this.Subtract(other.X, other.Y);
+            }
+            public static Coordinate operator -(Coordinate c1, Coordinate c2) {
+                c1.Subtract(c2); return c1;
             }
             public void Multiply(Double by) {
                 (this.X, this.Y) = (this.X * by, this.Y * by);
@@ -60,11 +72,23 @@ namespace MTLibrary {
             public void Multiply(Coordinate other) {
                 (this.X, this.Y) = (this.X * other.X, this.Y * other.Y);
             }
+            public static Coordinate operator *(Coordinate c1, Coordinate c2) {
+                c1.Multiply(c2); return c1;
+            }
+            public static Coordinate operator *(Coordinate c1, Double by) {
+                c1.Multiply(by); return c1;
+            }
             public void Divide(Double by) {
                 (this.X, this.Y) = (this.X / by, this.Y / by);
             }
             public void Divide(Coordinate other) {
                 (this.X, this.Y) = (this.X / other.X, this.Y / other.Y);
+            }
+            public static Coordinate operator /(Coordinate c1, Coordinate c2) {
+                c1.Multiply(c2); return c1;
+            }
+            public static Coordinate operator /(Coordinate c1, Double by) {
+                c1.Multiply(by); return c1;
             }
             public void Pow(Double toPower) {
                 this.X = Math.Pow(this.X, toPower);
@@ -73,6 +97,12 @@ namespace MTLibrary {
             public void Pow(Double xPow, Double yPow) {
                 this.X = Math.Pow(this.X, xPow);
                 this.Y = Math.Pow(this.Y, yPow);
+            }
+            public static Coordinate operator ^(Coordinate c1, Coordinate c2) {
+                c1.Pow(c2.X, c2.Y); return c1;
+            }
+            public static Coordinate operator ^(Coordinate c1, Double by) {
+                c1.Pow(by); return c1;
             }
             public void Clamp(Double minX, Double maxX, Double minY, Double maxY) {
                 this.X = Math.Clamp(this.X, minX, maxX);

@@ -5,10 +5,11 @@ using System.Collections.Generic;
 namespace MTLibrary {
     public class DictionaryFile {
         #region Internals
-        internal static String GetAnonymousFilename() {
-            String gotAnonName = Guid.NewGuid().ToString() + ".bin";
+        internal static String GetAnonymousFilename(Int32 iteration = 0) {
+            if (iteration >= Int32.MaxValue) { return new Random().Next().ToString(); }
+            String gotAnonName = Guid.NewGuid().ToString();
             gotAnonName = gotAnonName.Replace("-", "");
-            return File.Exists(gotAnonName) ? GetAnonymousFilename() : gotAnonName;
+            return File.Exists(gotAnonName) ? GetAnonymousFilename(iteration + 1) : gotAnonName;
         }
         #endregion
 
@@ -34,70 +35,17 @@ namespace MTLibrary {
         private Boolean _synced = false;
         private FileInfo _targetInfo;
         public Int32 Count { get { return this._memory.Count; } }
-        public String Filename { get { return this._targetInfo.Name; } }
-        public String Filepath { get { return this._targetInfo.FullName; } }
+        public String FullName { get { return this._targetInfo.FullName; } }
+        public String Name { get { return this._targetInfo.Name; } }
         public String this[String key] {
             get { return this.Get(key); }
             set {
-                if (value is null) { this.Remove(key); }
-                else { this.Set(key, value); }
+                if (value is not null) { this.Set(key, value); }
+                else { this.Remove(key); }
             }
-        }
-        public String this[Int32 index] {
-            get {
-                if (this.IsKey(index.ToString())) {
-                    return this._memory[index.ToString()];
-                } else {
-                    if (index <= this.Count) {
-                        var explorer = this._memory.GetEnumerator();
-                        Int32 idx = 0;
-                        while (explorer.MoveNext() && idx <= this.Count) {
-                            if (idx.Equals(index)) {
-                                return explorer.Current.Value;
-                            }
-                        }
-                    }
-                }
-                return String.Empty;
-            }
-            set {
-                if (value is null) {
-                    if (this.IsKey(index.ToString())) {
-                        this.Remove(index.ToString());
-                        return;
-                    } else {
-                        var explorer = this._memory.GetEnumerator();
-                        Int32 idx = 0;
-                        while (explorer.MoveNext() && idx <= this.Count) {
-                            if (idx.Equals(index)) {
-                                this.Remove(explorer.Current.Key);
-                                return;
-                            }
-                        }
-                    }
-                } else {
-                    if (this.IsKey(index.ToString())) {
-                        this._memory[index.ToString()] = value;
-                    } else {
-                        if (index <= this.Count) {
-                            var explorer = this._memory.GetEnumerator();
-                            Int32 idx = 0;
-                            while (explorer.MoveNext() && idx <= this.Count) {
-                                if (idx.Equals(index)) {
-                                    this.Set(explorer.Current.Key, value);
-                                    return;
-                                }
-                            }
-                        } this.Set(index.ToString(), value);
-                    }
-                }
-            }
-        }
-        public static implicit operator String[](DictionaryFile df) {
-            return df.ToArray();
         }
         public static implicit operator Dictionary<String, String>(DictionaryFile df) {
-            return df._memory;
+            return new(df._memory);
         }
         public static explicit operator DictionaryFile(Dictionary<String, String> pairs) {
             var df = new DictionaryFile();
@@ -117,28 +65,24 @@ namespace MTLibrary {
             } else { throw new ArgumentOutOfRangeException( $"{nameof(pairs)}",
                     $"Cannot explicity parse an uneven Array!"); }
         }
+        public static DictionaryFile operator +(DictionaryFile df1, DictionaryFile df2) {
+            var explorer = ((Dictionary<String, String>) df2).GetEnumerator();
+            while (explorer.MoveNext()) { df1.Set(explorer.Current.Key, explorer.Current.Value); }
+            return df1;
+        }
+        public static DictionaryFile operator -(DictionaryFile df1, DictionaryFile df2) {
+            var explorer = ((Dictionary<String, String>) df2).GetEnumerator();
+            while (explorer.MoveNext()) { df1.Remove(explorer.Current.Key); }
+            return df1;
+        }
         #endregion
 
         #region Methods
-        public String[] ToArray() {
-            Int32 len = this.Count*2;
-            String[] array = new String[len];
-            var memExplorer = this._memory.GetEnumerator();
-            Int32 idx = 0;
-            while (memExplorer.MoveNext() && idx <= len) {
-                array[idx] = memExplorer.Current.Key;
-                idx++;
-                array[idx] = memExplorer.Current.Value;
-                idx++;
-            } return array;
-        }
         public void Save() {
             if (this.Count is 0) {
-                try {
-                    this.Delete();
-                    this._targetInfo.Refresh();
-                    this._synced = true;
-                } catch { throw; };
+                this.Delete();
+                //this._targetInfo.Refresh();
+                this._synced = true;
                 return;
             }
             if (this._synced is false) {
@@ -196,7 +140,9 @@ namespace MTLibrary {
         public void Delete() {
             this._targetInfo.Refresh();
             if (this._targetInfo.Exists)
-                try { this._targetInfo.Delete(); } catch { throw; };
+                try { this._targetInfo.Delete(); } catch (Exception e) {
+                    throw new Exceptions.FileAccessException(this._targetInfo.FullName, "cannot be Deleted!", e);
+                };
         }
         public Boolean IsKey(String key) {
             try {
@@ -204,7 +150,7 @@ namespace MTLibrary {
                 return true;
             } catch { return false; }
         }
-        public Boolean Contains(String value) {
+        public Boolean IsValue(String value) {
             var explorer = this._memory.GetEnumerator();
             while (explorer.MoveNext()) {
                 if (explorer.Current.Value.Equals(value)) { return true; }
