@@ -1,4 +1,4 @@
-# MTLibrary (C#) v0.5.47.21
+# MTLibrary (C#) v0.5.48.21_sticks
 ![Logo](icon.png "MTLibrary (C#)")
 
 - [x] `class` DictionaryFile
@@ -32,9 +32,6 @@
   - `void` Load()
   - `void` Clear()
   - `void` Save()
-- [ ] `class` Vector
-  - [ ] `struct` Rotator
-  - [ ] `struct` Coordinate
 - [ ] `static class` Meta
   - [x] `String` Author, Email, Codename
   - [x] `ConsoleColor` ColorCode

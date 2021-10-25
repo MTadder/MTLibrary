@@ -5,9 +5,10 @@ using System.Collections.Generic;
 namespace MTLibrary {
     public class DictionaryFile {
         #region Internals
+        internal static readonly String extension = ".bin";
         internal static String GetAnonymousFilename(Int32 iteration = 0) {
             if (iteration >= Int32.MaxValue) { return new Random().Next().ToString(); }
-            String gotAnonName = Guid.NewGuid().ToString();
+            String gotAnonName = Guid.NewGuid().ToString() + extension;
             gotAnonName = gotAnonName.Replace("-", "");
             return File.Exists(gotAnonName) ? GetAnonymousFilename(iteration + 1) : gotAnonName;
         }
@@ -140,13 +141,10 @@ namespace MTLibrary {
         public void Delete() {
             this._targetInfo.Refresh();
             if (this._targetInfo.Exists)
-                try { this._targetInfo.Delete(); } catch (Exception e) {
-                    throw new Exceptions.FileAccessException(this._targetInfo.FullName, "cannot be Deleted!", e);
-                };
+                try { this._targetInfo.Delete(); } catch { throw; };
         }
         public Boolean IsKey(String key) {
-            try {
-                _ = this._memory[key];
+            try { _ = this._memory[key];
                 return true;
             } catch { return false; }
         }
