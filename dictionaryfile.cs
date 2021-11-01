@@ -148,6 +148,12 @@ namespace MTLibrary {
                 return true;
             } catch { return false; }
         }
+        public Boolean IsKey(String key, out String val) {
+            try {
+                val = this._memory[key];
+                return true;
+            } catch { val = String.Empty; return false; }
+        }
         public Boolean IsValue(String value) {
             var explorer = this._memory.GetEnumerator();
             while (explorer.MoveNext()) {
