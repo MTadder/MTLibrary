@@ -6,7 +6,7 @@ namespace MTLibrary {
         public static readonly String Projectname = "MTLibrary";
         public static readonly String Author = "MTadder";
         public static readonly String Email = "MTadder@protonmail.com";
-        public static readonly String Codename = "sticks";
+        public static readonly String Codename = "beendid";
         public static readonly ConsoleColor ColorCode = ConsoleColor.Green;
 
         public static String MetaInformation() {

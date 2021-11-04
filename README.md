@@ -1,4 +1,4 @@
-# MTLibrary (C#) v0.5.48.21_sticks
+# MTLibrary (C#) v0.5.49.21_beendid
 ![Logo](icon.png "MTLibrary (C#)")
 
 - [x] `class` DictionaryFile
