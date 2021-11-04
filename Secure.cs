@@ -6,18 +6,23 @@ using System.Text;
 namespace MTLibrary {
     public static class Secure {
         public class Authenticator {
-            internal List<String> keyset = new();
+            internal List<String> _keyset = new();
+            internal Salt _salt = new();
             public override String ToString() {
-                return this.GetSalt().ToString();
+                return Meta.Serialize(_keyset.ToArray());
             }
             public void Clear() {
-                this.keyset.Clear();
+                this._keyset.Clear();
             }
             public void Register(String key) {
-                this.keyset.Add(key);
+                this._keyset.Add(this.Hash(key));
             }
             public void Register(String[] keys) {
-                this.keyset.AddRange(keys);
+                String[] hashedKeys = new String[keys.Length];
+                for (Int32 i = 0; i < keys.Length; i++) {
+                    hashedKeys[i] = this.Hash(keys[i]);
+                }
+                this._keyset.AddRange(hashedKeys);
             }
             public void Register(List<String> keys) {
                 this.Register(keys.ToArray());
@@ -31,33 +36,17 @@ namespace MTLibrary {
             public void Register(Double key) {
                 this.Register(key.ToString());
             }
-            public String GetKey(Int32 atIndex) {
-                return this.keyset[atIndex] is not null
-                    ? this.keyset[atIndex] : String.Empty;
-            }
-            public Boolean IsKey(String query) {
-                foreach (String key in this.keyset) {
-                    if (query.Equals(key)) {
+            public Boolean IsRegistered(String query) {
+                String hashedQuery = this.Hash(query);
+                foreach (String key in this._keyset) {
+                    if (key.Equals(hashedQuery)) {
                         return true;
                     }
                 } return false;
             }
-            public Boolean IsKey(String query, out Int32 idx) {
-                Int32 indx = 0;
-                foreach (String key in this.keyset) {
-                    if (query.Equals(key)) {
-                        idx = indx;
-                        return true;
-                    } indx++;
-                } idx = -1;
-                return false;
-            }
-            public Boolean IsKey(String query, Int32 atIndex) {
-                return this.IsKey(query, out Int32 idx) && idx.Equals(atIndex);
-            }
             public void Persist(DictionaryFile inDF) {
                 Int32 idx = 0;
-                foreach (String key in this.keyset) {
+                foreach (String key in this._keyset) {
                     inDF[idx.ToString()] = key;
                 }
             }
@@ -65,11 +54,10 @@ namespace MTLibrary {
             public Authenticator(DictionaryFile sourceDF) {
                 Int32 idx = 0;
                 while (sourceDF.IsKey(idx.ToString(), out String val)) {
-                    this.keyset.Insert(idx, val);
+                    this._keyset.Insert(idx, val);
                 }
             }
-            public Salt GetSalt() { return new Salt(this.ToString()); }
-            public String Hash(String data) { return this.GetSalt().Hash(data); }
+            public String Hash(String data) { return this._salt.Hash(data); }
         }
         public class Salt {
             internal static Char[] GenerateSegments(Int32 amount) {
@@ -110,7 +98,7 @@ namespace MTLibrary {
                     foreach (Char saltChar in saltString) {
                         newChar += (Char)((Byte)saltChar + (Byte)dataChar);
                     } newData += (Char)((Byte) newChar % 0xFFFF);
-                } return newData;
+                } return newData.Replace(data, "");
             }
         }
     }

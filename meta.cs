@@ -15,6 +15,7 @@ namespace MTLibrary {
 
         public static String Serialize(Array target, String seperator = ", ", Boolean showIndexes = true) {
             String serial = "{";
+            if (target.Length < 1) { return serial +"}"; }
             Int32 index = 0;
             for (IEnumerator arrEnum = target.GetEnumerator(); arrEnum.MoveNext();) {
                 serial += showIndexes ? $"[{index}]: " : "" ;
