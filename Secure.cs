@@ -7,13 +7,29 @@ namespace MTLibrary {
     public static class Secure {
         public class Authenticator {
             internal List<String> keyset = new();
-            public Boolean Register(String[] keys) {
-                Int32 oldCount = this.keyset.Count;
-                this.keyset.AddRange(keys);
-                return this.keyset.Count.Equals(oldCount + keys.Length);
+            public override String ToString() {
+                return this.GetSalt().ToString();
             }
-            public Boolean Register(List<String> keys) {
-                return this.Register(keys.ToArray());
+            public void Clear() {
+                this.keyset.Clear();
+            }
+            public void Register(String key) {
+                this.keyset.Add(key);
+            }
+            public void Register(String[] keys) {
+                this.keyset.AddRange(keys);
+            }
+            public void Register(List<String> keys) {
+                this.Register(keys.ToArray());
+            }
+            public void Register(Char key) {
+                this.Register(key.ToString());
+            }
+            public void Register(Single key) {
+                this.Register(key.ToString());
+            }
+            public void Register(Double key) {
+                this.Register(key.ToString());
             }
             public String GetKey(Int32 atIndex) {
                 return this.keyset[atIndex] is not null
@@ -44,7 +60,6 @@ namespace MTLibrary {
                 foreach (String key in this.keyset) {
                     inDF[idx.ToString()] = key;
                 }
-                inDF.Save();
             }
             public Authenticator() {}
             public Authenticator(DictionaryFile sourceDF) {
@@ -53,6 +68,8 @@ namespace MTLibrary {
                     this.keyset.Insert(idx, val);
                 }
             }
+            public Salt GetSalt() { return new Salt(this.ToString()); }
+            public String Hash(String data) { return this.GetSalt().Hash(data); }
         }
         public class Salt {
             internal static Char[] GenerateSegments(Int32 amount) {

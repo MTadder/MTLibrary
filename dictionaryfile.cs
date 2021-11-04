@@ -1,6 +1,6 @@
 ﻿using System;
-using System.IO;
 using System.Collections.Generic;
+using System.IO;
 
 namespace MTLibrary {
     public class DictionaryFile {
@@ -41,8 +41,7 @@ namespace MTLibrary {
         public String this[String key] {
             get { return this.Get(key); }
             set {
-                if (value is not null) { this.Set(key, value); }
-                else { this.Remove(key); }
+                if (value is not null) { this.Set(key, value); } else { this.Remove(key); }
             }
         }
         public static implicit operator Dictionary<String, String>(DictionaryFile df) {
@@ -56,15 +55,20 @@ namespace MTLibrary {
         public static explicit operator DictionaryFile(String[] pairs) {
             var df = new DictionaryFile();
             if (pairs.Length % 2 == 0) {
-                for (Int32 i=0; i < pairs.Length; i+=2) {
-                    try { String key = pairs[i];
-                        try { String val = pairs[i + 1];
+                for (Int32 i = 0; i < pairs.Length; i += 2) {
+                    try {
+                        String key = pairs[i];
+                        try {
+                            String val = pairs[i + 1];
                             df.Set(key, val);
                         } catch { continue; }
                     } catch { continue; }
-                } return df;
-            } else { throw new ArgumentOutOfRangeException( $"{nameof(pairs)}",
-                    $"Cannot explicity parse an uneven Array!"); }
+                }
+                return df;
+            } else {
+                throw new ArgumentOutOfRangeException($"{nameof(pairs)}",
+               $"Cannot explicity parse an uneven Array!");
+            }
         }
         public static DictionaryFile operator +(DictionaryFile df1, DictionaryFile df2) {
             var explorer = ((Dictionary<String, String>) df2).GetEnumerator();
@@ -96,7 +100,8 @@ namespace MTLibrary {
                             binWriter.Write(explorer.Current.Value);
                         }
                     }
-                } this._synced = true;
+                }
+                this._synced = true;
             }
         }
         public void Load() {
@@ -112,13 +117,16 @@ namespace MTLibrary {
                 using (MemoryStream memStream = new(targetData)) {
                     using (BinaryReader binReader = new(memStream)) {
                         Int32 pairsToRead = binReader.ReadInt32();
-                        for (Int32 i=0; i < pairsToRead; i++) {
-                            try { String gotKey = binReader.ReadString();
-                                try { String gotValue = binReader.ReadString();
+                        for (Int32 i = 0; i < pairsToRead; i++) {
+                            try {
+                                String gotKey = binReader.ReadString();
+                                try {
+                                    String gotValue = binReader.ReadString();
                                     this._memory[gotKey] = gotValue;
                                 } catch { continue; }
                             } catch { continue; }
-                        } this._synced = this.Count.Equals(pairsToRead);
+                        }
+                        this._synced = this.Count.Equals(pairsToRead);
                     }
                 }
             }
@@ -144,7 +152,8 @@ namespace MTLibrary {
                 try { this._targetInfo.Delete(); } catch { throw; };
         }
         public Boolean IsKey(String key) {
-            try { _ = this._memory[key];
+            try {
+                _ = this._memory[key];
                 return true;
             } catch { return false; }
         }
@@ -158,11 +167,11 @@ namespace MTLibrary {
             var explorer = this._memory.GetEnumerator();
             while (explorer.MoveNext()) {
                 if (explorer.Current.Value.Equals(value)) { return true; }
-            } return false;
+            }
+            return false;
         }
         public String Get(String key) {
-            try { return this._memory[key]; }
-            catch (KeyNotFoundException) { return String.Empty; }
+            try { return this._memory[key]; } catch (KeyNotFoundException) { return String.Empty; }
         }
         #endregion
     }
