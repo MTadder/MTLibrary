@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Security;
 using System.Collections.Generic;
 using System.Text;
 
@@ -42,7 +41,8 @@ namespace MTLibrary {
                     if (key.Equals(hashedQuery)) {
                         return true;
                     }
-                } return false;
+                }
+                return false;
             }
             public void Persist(DictionaryFile inDF) {
                 Int32 idx = 0;
@@ -50,7 +50,7 @@ namespace MTLibrary {
                     inDF[idx.ToString()] = key;
                 }
             }
-            public Authenticator() {}
+            public Authenticator() { }
             public Authenticator(DictionaryFile sourceDF) {
                 Int32 idx = 0;
                 while (sourceDF.IsKey(idx.ToString(), out String val)) {
@@ -87,7 +87,8 @@ namespace MTLibrary {
                 StringBuilder sb = new();
                 foreach (Char c in this.salt) {
                     sb = sb.Append(c);
-                } return sb.ToString().Trim();
+                }
+                return sb.ToString().Trim();
             }
             public String Hash(String data) {
                 String saltString = this.ToString();
@@ -96,9 +97,11 @@ namespace MTLibrary {
                 foreach (Char dataChar in data) {
                     Char newChar = dataChar;
                     foreach (Char saltChar in saltString) {
-                        newChar += (Char)((Byte)saltChar + (Byte)dataChar);
-                    } newData += (Char)((Byte) newChar % 0xFFFF);
-                } return newData.Replace(data, "");
+                        newChar += (Char) ((Byte) saltChar + (Byte) dataChar);
+                    }
+                    newData += (Char) ((Byte) newChar % 0xFFFF);
+                }
+                return newData.Replace(data, "");
             }
         }
     }

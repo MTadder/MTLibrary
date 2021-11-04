@@ -15,10 +15,10 @@ namespace MTLibrary {
 
         public static String Serialize(Array target, String seperator = ", ", Boolean showIndexes = true) {
             String serial = "{";
-            if (target.Length < 1) { return serial +"}"; }
+            if (target.Length < 1) { return serial + "}"; }
             Int32 index = 0;
             for (IEnumerator arrEnum = target.GetEnumerator(); arrEnum.MoveNext();) {
-                serial += showIndexes ? $"[{index}]: " : "" ;
+                serial += showIndexes ? $"[{index}]: " : "";
                 if (arrEnum.Current is Array || arrEnum.Current.GetType().IsArray) {
                     serial += Serialize((Array) arrEnum.Current, seperator);
                 } else if (arrEnum.Current is Int32 arrInt) {
@@ -28,10 +28,12 @@ namespace MTLibrary {
                 } else if (arrEnum.Current.GetType().IsSerializable) {
                     serial += $"{arrEnum.Current}{seperator}";
                 } else {
-                    throw new ArrayTypeMismatchException(nameof(target) + 
+                    throw new ArrayTypeMismatchException(nameof(target) +
                         " is not serializable!");
-                } index++;
-            } serial = serial.Substring(0, serial.Length-2);
+                }
+                index++;
+            }
+            serial = serial.Substring(0, serial.Length - 2);
             return serial.Trim() + "}";
         }
     }
