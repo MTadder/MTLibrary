@@ -32,6 +32,15 @@
   - `void` Load()
   - `void` Clear()
   - `void` Save()
+- [ ] `static class` Secure
+  - [ ] `class` Authenticator
+    - [ ] `Salt` salt {`get`, `set`}
+    - [ ] `void` Hash(`String` data)
+    - [ ] `void` Persist(`DictionaryFile` into)
+    - [ ] `void` Register(`String` key)
+    - [ ] `Boolean` IsRegistered(`String` key)
+  - [ ] `class` Salt
+    - [ ] `String` Hash(`String` data)
 - [ ] `static class` Meta
   - [x] `String` Author, Email, Codename
   - [x] `ConsoleColor` ColorCode

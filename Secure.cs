@@ -7,8 +7,12 @@ namespace MTLibrary {
         public class Authenticator {
             internal List<String> _keyset = new();
             internal Salt _salt = new();
+            public Salt Salt { 
+                get { return this._salt; }
+                set { this._salt = value; }
+            }
             public override String ToString() {
-                return Meta.Serialize(_keyset.ToArray());
+                return Meta.Serialize(_keyset.ToArray(), "", false);
             }
             public void Clear() {
                 this._keyset.Clear();
@@ -44,11 +48,12 @@ namespace MTLibrary {
                 }
                 return false;
             }
-            public void Persist(DictionaryFile inDF) {
+            public DictionaryFile Persist(DictionaryFile into) {
                 Int32 idx = 0;
                 foreach (String key in this._keyset) {
-                    inDF[idx.ToString()] = key;
+                    into[idx.ToString()] = key;
                 }
+                return into;
             }
             public Authenticator() { }
             public Authenticator(DictionaryFile sourceDF) {
@@ -57,9 +62,10 @@ namespace MTLibrary {
                     this._keyset.Insert(idx, val);
                 }
             }
-            public String Hash(String data) { return this._salt.Hash(data); }
+            public String Hash(String data) { return this.Salt.Hash(data); }
         }
         public class Salt {
+            internal Char[] _salt;
             internal static Char[] GenerateSegments(Int32 amount) {
                 static Char[] GenerateSegment() {
                     return Guid.NewGuid().ToString().Replace("-", "").ToCharArray();
@@ -73,22 +79,17 @@ namespace MTLibrary {
                 }
                 return Segments.ToArray();
             }
-            internal Char[] salt;
             public Salt(Int32 segments = 13) {
-                this.salt = GenerateSegments(segments);
+                this._salt = GenerateSegments(segments);
             }
             public Salt(Salt target) {
-                this.salt = target.salt;
+                this._salt = target._salt;
             }
             public Salt(String content) {
-                this.salt = content.ToCharArray();
+                this._salt = content.ToCharArray();
             }
             public override String ToString() {
-                StringBuilder sb = new();
-                foreach (Char c in this.salt) {
-                    sb = sb.Append(c);
-                }
-                return sb.ToString().Trim();
+                return Meta.Serialize(this._salt, "", false).Trim();
             }
             public String Hash(String data) {
                 String saltString = this.ToString();
